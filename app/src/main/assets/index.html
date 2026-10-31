@@ -476,7 +476,7 @@ function referensiSoal(q){
 }
 bank.forEach(q=>q.r=referensiSoal(q));
 
-let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="";
+let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="",sudahSelesai=false;
 const paketSoal={
 tingkat1:["TWK","TPU","TSI"],
 tingkat2:["TWK","TPU","TPM","TSI"],
@@ -553,13 +553,13 @@ if(!soal.length){alert("Belum ada soal untuk materi ini.");return}
 namaPaket="Latihan "+m;mode="latihan";sisa=0;mulai();
 }
 function mulai(){
-jawaban=Array(soal.length).fill(null);pos=0;
+jawaban=Array(soal.length).fill(null);pos=0;sudahSelesai=false;
 document.getElementById("judulUjian").textContent=namaPaket;
 tampil("ujian");render();
 clearInterval(interval);
 if(mode==="ujian"){
 updateTimer();
-interval=setInterval(()=>{sisa--;updateTimer();if(sisa<=0)selesai()},1000);
+interval=setInterval(()=>{if(sudahSelesai){clearInterval(interval);return;}sisa--;if(sisa<=0){sisa=0;updateTimer();selesai(true);return;}updateTimer();},1000);
 }else document.getElementById("timer").textContent="MODE LATIHAN";
 }
 function updateTimer(){
@@ -585,12 +585,19 @@ area.appendChild(b);
 function sebelumnya(){if(pos>0){pos--;render()}}
 function berikutnya(){if(pos<soal.length-1){pos++;render()}else alert("Ini soal terakhir. Tekan Selesai untuk melihat hasil.")}
 function konfirmasiSelesai(){
-const kosong=jawaban.filter(x=>x===null).length;
-const info=kosong?"Masih ada "+kosong+" soal yang belum dijawab. ":"";
-if(confirm(info+"Kumpulkan jawaban sekarang?"))selesai();
+if(sudahSelesai)return;
+const terjawab=jawaban.filter(x=>x!==null).length;
+const kosong=jawaban.length-terjawab;
+const info=kosong>0
+  ?"Anda sudah menjawab "+terjawab+" dari "+soal.length+" soal. Masih ada "+kosong+" soal yang belum dijawab. " 
+  :"Semua "+soal.length+" soal sudah dijawab. ";
+if(confirm(info+"Anda yakin ingin menyelesaikan dan mengumpulkan ujian sekarang?"))selesai(false);
 }
-function selesai(){
+function selesai(karenaWaktuHabis=false){
+if(sudahSelesai)return;
+sudahSelesai=true;
 clearInterval(interval);
+if(karenaWaktuHabis){document.getElementById("timer").textContent="WAKTU HABIS";}
 let benar=0;
 soal.forEach((q,i)=>{if(jawaban[i]===q.a)benar++});
 let nilai=Math.round(benar/soal.length*100);
