@@ -83,7 +83,7 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 <strong id="judulUjian">Simulasi Ujian</strong>
 <span id="timer">90:00</span>
 </div>
-<p class="small" id="nomor"></p>
+<p class="small" id="nomor"></p><p class="small" id="statusJawaban"></p>
 <div class="progress"><div id="bar"></div></div>
 </div>
 <div class="card">
@@ -92,7 +92,7 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 <p class="small" id="kategori"></p>
 <button class="secondary" onclick="sebelumnya()">SOAL SEBELUMNYA</button>
 <button onclick="berikutnya()">SOAL BERIKUTNYA</button>
-<button style="background:#a43d32" onclick="selesai()">SELESAI / KUMPULKAN</button>
+<button style="background:#a43d32" onclick="konfirmasiSelesai()">SELESAI / KUMPULKAN</button>
 </div>
 </section>
 
@@ -101,7 +101,7 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 <h2>Hasil Latihan</h2>
 <p>Nilai kamu:</p>
 <div class="result" id="nilai"></div>
-<p id="rincian"></p>
+<p id="rincian"></p><div id="rincianKategori"></div>
 <p class="small">Hasil ini merupakan nilai latihan, bukan hasil resmi CAT BKN.</p>
 <button onclick="lihatPembahasan()">LIHAT PEMBAHASAN</button>
 <button class="secondary" onclick="beranda()">KEMBALI KE BERANDA</button>
@@ -242,6 +242,7 @@ document.getElementById("timer").textContent=String(m).padStart(2,"0")+":"+Strin
 function render(){
 const q=soal[pos];
 document.getElementById("nomor").textContent="Soal "+(pos+1)+" dari "+soal.length;
+document.getElementById("statusJawaban").textContent="Terjawab: "+jawaban.filter(x=>x!==null).length+" • Belum dijawab: "+jawaban.filter(x=>x===null).length;
 document.getElementById("bar").style.width=((pos+1)/soal.length*100)+"%";
 document.getElementById("pertanyaan").textContent=q.q;
 document.getElementById("kategori").textContent=q.m+" • "+q.t;
@@ -256,13 +257,23 @@ area.appendChild(b);
 }
 function sebelumnya(){if(pos>0){pos--;render()}}
 function berikutnya(){if(pos<soal.length-1){pos++;render()}else alert("Ini soal terakhir. Tekan Selesai untuk melihat hasil.")}
+function konfirmasiSelesai(){
+const kosong=jawaban.filter(x=>x===null).length;
+const info=kosong?"Masih ada "+kosong+" soal yang belum dijawab. ":"";
+if(confirm(info+"Kumpulkan jawaban sekarang?"))selesai();
+}
 function selesai(){
 clearInterval(interval);
 let benar=0;
 soal.forEach((q,i)=>{if(jawaban[i]===q.a)benar++});
 let nilai=Math.round(benar/soal.length*100);
 document.getElementById("nilai").textContent=nilai;
-document.getElementById("rincian").textContent="Benar: "+benar+" | Salah/tidak dijawab: "+(soal.length-benar)+" | Jumlah soal: "+soal.length;
+const kosong=jawaban.filter(x=>x===null).length;
+const salah=soal.length-benar-kosong;
+document.getElementById("rincian").textContent="Benar: "+benar+" | Salah: "+salah+" | Tidak dijawab: "+kosong+" | Jumlah soal: "+soal.length;
+const perKategori={};
+soal.forEach((q,i)=>{if(!perKategori[q.m])perKategori[q.m]={total:0,benar:0};perKategori[q.m].total++;if(jawaban[i]===q.a)perKategori[q.m].benar++;});
+document.getElementById("rincianKategori").innerHTML="<h3>Nilai per kategori</h3>"+Object.entries(perKategori).map(([m,v])=>"<p>"+m+": "+v.benar+" dari "+v.total+" benar</p>").join("");
 let data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
 data.unshift({nama:namaPaket,nilai,tanggal:new Date().toLocaleString("id-ID"),benar,total:soal.length});
 localStorage.setItem("riwayatPintar",JSON.stringify(data.slice(0,30)));
@@ -278,13 +289,18 @@ area.appendChild(d);
 });
 area.scrollIntoView({behavior:"smooth"});
 }
+function hapusRiwayat(index){
+if(!confirm("Hapus catatan riwayat ini?"))return;
+const data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+data.splice(index,1);localStorage.setItem("riwayatPintar",JSON.stringify(data));riwayat();
+}
 function riwayat(){
 const data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
 const area=document.getElementById("daftarRiwayat");area.innerHTML="";
 if(!data.length)area.textContent="Belum ada riwayat latihan.";
-data.forEach(x=>{
+data.forEach((x,i)=>{
 let d=document.createElement("div");d.className="card";
-d.innerHTML="<b>"+x.nama+"</b><p>Nilai: "+x.nilai+" | Benar: "+x.benar+"/"+x.total+"</p><p class='small'>"+x.tanggal+"</p>";
+d.innerHTML="<b>"+x.nama+"</b><p>Nilai: "+x.nilai+" | Benar: "+x.benar+"/"+x.total+"</p><p class='small'>"+x.tanggal+"</p><button class='secondary' onclick='hapusRiwayat("+i+")'>HAPUS CATATAN</button>";
 area.appendChild(d);
 });
 tampil("riwayat");
