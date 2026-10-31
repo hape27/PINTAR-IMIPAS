@@ -1,170 +1,252 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b2c">
 <title>PINTAR IMIPAS</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f1f5f9;color:#172554;font-family:Arial,sans-serif}
-header{background:#123b65;color:white;padding:22px;text-align:center}
-header h1{margin:0;font-size:25px}
-header p{margin:7px 0 0;font-size:13px}
-main{max-width:650px;margin:auto;padding:16px}
-.card{background:white;border-radius:13px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #0001}
-button,select{padding:12px;border:0;border-radius:8px;font-size:15px}
-button{background:#155e9a;color:white;cursor:pointer}
-button:disabled{opacity:.4}
-select{width:100%;border:1px solid #ccd5df;background:white}
-.menu button{width:100%;margin-top:9px;text-align:left}
-.option{display:block;width:100%;text-align:left;margin:9px 0;background:#e8eef5;color:#172554}
-.option.selected{background:#b9dcff;border:2px solid #155e9a}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-.actions button{flex:1}
-.muted{color:#64748b;font-size:13px}
-#exam{display:none}
-#result{display:none}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f2;color:#20352b}
+header{background:#123b2c;color:white;padding:24px 16px;text-align:center}
+header h1{margin:0;font-size:26px}
+header p{font-size:13px;margin:8px 0 0}
+main{max-width:760px;margin:auto;padding:14px}
+.card{background:white;border-radius:13px;padding:17px;margin:12px 0;box-shadow:0 2px 8px #0001}
+h2{font-size:19px;margin-top:0}
+button,select{width:100%;padding:13px;border:0;border-radius:9px;font-size:15px;margin:6px 0}
+button{background:#176b49;color:white;font-weight:bold;cursor:pointer}
+button.secondary{background:#e6eee8;color:#17432f}
+button.option{background:#edf3ef;color:#20352b;text-align:left;border:1px solid #dce8df;font-weight:normal}
+button.option.selected{background:#ccebd7;border:2px solid #176b49}
+button:disabled{opacity:.5}
+.small{font-size:13px;color:#68776e}
+.hidden{display:none!important}
+#timer{font-weight:bold;color:#b33;font-size:19px}
+.progress{height:8px;background:#e1e9e3;border-radius:8px;overflow:hidden}
+#bar{height:8px;background:#248653;width:0}
+.result{font-size:28px;font-weight:bold;color:#176b49}
+footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 </style>
 </head>
 <body>
 <header>
 <h1>PINTAR IMIPAS</h1>
-<p>Platform Latihan Ujian Dinas dan UPKP</p>
+<p>Platform Informasi dan Latihan Ujian Dinas & UPKP</p>
+<p>Kementerian Imigrasi dan Pemasyarakatan</p>
 </header>
 <main>
 <section id="home">
 <div class="card">
-<h3>Selamat Datang</h3>
-<p>Persiapkan diri menghadapi ujian dengan latihan soal dan pembahasan.</p>
-<p class="muted">Aplikasi dapat digunakan secara offline setelah terpasang.</p>
-</div>
-<div class="card menu">
-<h3>Pilih Paket Ujian</h3>
-<button onclick="start('Tingkat I')">Ujian Dinas Tingkat I</button>
-<button onclick="start('Tingkat II')">Ujian Dinas Tingkat II</button>
-<button onclick="start('UPKP')">Ujian Penyesuaian Kenaikan Pangkat</button>
+<h2>Selamat Datang</h2>
+<p>Belajar dan persiapkan diri menghadapi Ujian Dinas dan UPKP melalui latihan soal, simulasi CAT, serta pembahasan.</p>
 </div>
 <div class="card">
-<h3>Riwayat Nilai</h3>
-<div id="history">Belum ada riwayat ujian.</div>
+<h2>Pilih Paket Ujian</h2>
+<select id="paket">
+<option value="tingkat1">Ujian Dinas Tingkat I (90 menit)</option>
+<option value="tingkat2">Ujian Dinas Tingkat II (120 menit)</option>
+<option value="upkp">UPKP D3–S3 (90 menit)</option>
+</select>
+<button onclick="mulaiUjian()">MULAI SIMULASI UJIAN</button>
+<button class="secondary" onclick="bukaLatihan()">LATIHAN PER MATERI</button>
+<button class="secondary" onclick="riwayat()">RIWAYAT NILAI</button>
+</div>
+<div class="card">
+<h2>Materi Pembelajaran</h2>
+<p class="small">TWK • TPU • TSI • TPM • TKT • TKP • PERKANTORAN</p>
+<p class="small">Materi Perkantoran juga tersedia sebagai latihan tambahan UPKP.</p>
 </div>
 </section>
 
-<section id="exam">
+<section id="latihan" class="hidden">
 <div class="card">
-<div id="info"></div>
-<div class="actions">
-<span id="timer"></span>
-<span id="number"></span>
-</div>
-<hr>
-<h3 id="question"></h3>
-<div id="options"></div>
-<p id="explanation" class="muted"></p>
-<div class="actions">
-<button onclick="prev()">Sebelumnya</button>
-<button onclick="next()">Berikutnya</button>
-<button onclick="finish()">Selesai</button>
-</div>
+<h2>Latihan Berdasarkan Materi</h2>
+<select id="pilihMateri">
+<option value="TWK">TWK - Wawasan Kebangsaan</option>
+<option value="TPU">TPU - Pengetahuan Umum</option>
+<option value="TSI">TSI - Substansi Instansi</option>
+<option value="TPM">TPM - Manajemen</option>
+<option value="TKT">TKT - Pengetahuan Teknis</option>
+<option value="TKP">TKP - Kompetensi Pilihan</option>
+<option value="Perkantoran">Perkantoran</option>
+</select>
+<button onclick="mulaiLatihan()">MULAI LATIHAN</button>
+<button class="secondary" onclick="beranda()">KEMBALI</button>
 </div>
 </section>
 
-<section id="result">
+<section id="ujian" class="hidden">
 <div class="card">
-<h2>Hasil Ujian</h2>
-<h1 id="score"></h1>
-<p id="detail"></p>
-<button onclick="home()">Kembali ke Beranda</button>
+<div style="display:flex;justify-content:space-between;gap:10px">
+<strong id="judulUjian">Simulasi Ujian</strong>
+<span id="timer">90:00</span>
+</div>
+<p class="small" id="nomor"></p>
+<div class="progress"><div id="bar"></div></div>
+</div>
+<div class="card">
+<h2 id="pertanyaan"></h2>
+<div id="opsi"></div>
+<p class="small" id="kategori"></p>
+<button class="secondary" onclick="sebelumnya()">SOAL SEBELUMNYA</button>
+<button onclick="berikutnya()">SOAL BERIKUTNYA</button>
+<button style="background:#a43d32" onclick="selesai()">SELESAI / KUMPULKAN</button>
+</div>
+</section>
+
+<section id="hasil" class="hidden">
+<div class="card">
+<h2>Hasil Latihan</h2>
+<p>Nilai kamu:</p>
+<div class="result" id="nilai"></div>
+<p id="rincian"></p>
+<p class="small">Hasil ini merupakan nilai latihan, bukan hasil resmi CAT BKN.</p>
+<button onclick="lihatPembahasan()">LIHAT PEMBAHASAN</button>
+<button class="secondary" onclick="beranda()">KEMBALI KE BERANDA</button>
+</div>
+<div id="pembahasan"></div>
+</section>
+
+<section id="riwayat" class="hidden">
+<div class="card">
+<h2>Riwayat Nilai</h2>
+<div id="daftarRiwayat"></div>
+<button class="secondary" onclick="beranda()">KEMBALI</button>
 </div>
 </section>
 </main>
+<footer>PINTAR IMIPAS • Media belajar mandiri</footer>
 
 <script>
-const subjects={
-"TWK":"Tes Wawasan Kebangsaan",
-"TPU":"Tes Pengetahuan Umum",
-"TSI":"Tes Substansi Instansi",
-"TPM":"Tes Pengetahuan Manajerial",
-"TKT":"Tes Kompetensi Teknis",
-"TKP":"Tes Kompetensi Penunjang",
-"UPKP":"Ujian Penyesuaian Kenaikan Pangkat"
-};
-
 const bank=[
-["TWK","Pancasila sebagai dasar negara tercantum dalam bagian apa?","Pembukaan UUD 1945","Batang tubuh UUD","Peraturan pemerintah","Ketetapan menteri",0,"Pancasila tercantum dalam alinea keempat Pembukaan UUD 1945."],
-["TWK","Semboyan Bhinneka Tunggal Ika memiliki arti?","Berbeda-beda tetapi tetap satu","Bersatu kita teguh","Keadilan bagi semua","Merdeka atau mati",0,"Bhinneka Tunggal Ika berarti berbeda-beda tetapi tetap satu."],
-["TWK","Bentuk negara Indonesia adalah?","Federasi","Kesatuan","Monarki","Konfederasi",1,"Pasal 1 ayat (1) UUD 1945 menyatakan Indonesia ialah Negara Kesatuan."],
-["TWK","Lembaga yang berwenang mengubah UUD adalah?","Presiden","DPR","MPR","MA",2,"MPR berwenang mengubah dan menetapkan UUD."],
-["TWK","Hari Lahir Pancasila diperingati setiap?","1 Juni","17 Agustus","20 Mei","28 Oktober",0,"Hari Lahir Pancasila diperingati pada 1 Juni."],
-["TPU","Hasil dari 25 x 4 adalah?","50","75","100","125",2,"25 dikalikan 4 sama dengan 100."],
-["TPU","Sinonim kata integritas adalah?","Kejujuran","Kekuasaan","Kekayaan","Kecepatan",0,"Integritas berkaitan dengan kejujuran dan konsistensi nilai moral."],
-["TPU","Jika semua A adalah B dan semua B adalah C, maka?","Semua A adalah C","Semua C adalah A","A bukan C","Tidak ada hubungan",0,"Kesimpulan logisnya adalah semua A termasuk C."],
-["TSI","Tujuan utama pemasyarakatan adalah?","Pembalasan","Reintegrasi sosial","Pengucilan","Pemberian hukuman tambahan",1,"Pemasyarakatan berorientasi pada reintegrasi sosial."],
-["TSI","Pembinaan warga binaan dilakukan dengan prinsip?","Diskriminasi","Penghormatan HAM","Pengabaian hak","Pembatasan tanpa dasar",1,"Pelayanan dan pembinaan harus menghormati hak asasi manusia."],
-["TPM","Seorang pemimpin yang baik harus mampu?","Menghindari tanggung jawab","Mengambil keputusan secara tepat","Menyalahkan bawahan","Menolak masukan",1,"Pemimpin perlu mengambil keputusan secara tepat dan bertanggung jawab."],
-["TPM","Ketika terjadi konflik tim, langkah awal yang tepat adalah?","Mendengarkan kedua pihak","Langsung menghukum","Membiarkan konflik","Memihak teman",0,"Konflik perlu ditangani dengan mendengarkan pihak terkait secara objektif."],
-["TKT","Apa tujuan pemeriksaan kesehatan dasar?","Mengetahui kondisi kesehatan","Memberi hukuman","Mengurangi hak pasien","Mengganti diagnosis dokter",0,"Pemeriksaan dasar membantu mengidentifikasi kondisi kesehatan."],
-["TKT","TB merupakan penyakit yang terutama menyerang?","Paru-paru","Kulit","Tulang saja","Mata",0,"Tuberkulosis paling sering menyerang paru-paru."],
-["TKP","Anda melihat rekan kesulitan menyelesaikan tugas. Sikap terbaik?","Membantu sesuai kemampuan","Membiarkan","Menyalahkan","Menghindar",0,"Kerja sama dan kepedulian membantu pencapaian tujuan tim."],
-["UPKP","Kenaikan pangkat pada prinsipnya harus memperhatikan?","Persyaratan dan ketentuan berlaku","Kedekatan pribadi","Keinginan sendiri","Masa kerja saja",0,"Kenaikan pangkat mengikuti persyaratan dan ketentuan kepegawaian."]
+{m:"TWK",t:"Pancasila",q:"Dasar negara Republik Indonesia adalah ...",o:["Pancasila","UUD 1945","Bhinneka Tunggal Ika","Proklamasi"],a:0,e:"Pancasila merupakan dasar negara Republik Indonesia."},
+{m:"TWK",t:"Pancasila",q:"Sila ketiga Pancasila berbunyi ...",o:["Keadilan sosial bagi seluruh rakyat Indonesia","Persatuan Indonesia","Ketuhanan Yang Maha Esa","Kemanusiaan yang adil dan beradab"],a:1,e:"Sila ketiga adalah Persatuan Indonesia."},
+{m:"TWK",t:"UUD 1945",q:"UUD Negara Republik Indonesia Tahun 1945 disahkan pada tanggal ...",o:["17 Agustus 1945","18 Agustus 1945","1 Juni 1945","20 Mei 1908"],a:1,e:"UUD 1945 disahkan oleh PPKI pada 18 Agustus 1945."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Proklamasi Kemerdekaan Indonesia dibacakan pada ...",o:["1 Juni 1945","17 Agustus 1945","18 Agustus 1945","10 November 1945"],a:1,e:"Proklamasi dibacakan pada 17 Agustus 1945."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Bahasa negara Indonesia menurut UUD 1945 adalah ...",o:["Bahasa Melayu","Bahasa Indonesia","Bahasa daerah","Bahasa persatuan saja"],a:1,e:"Pasal 36 UUD 1945 menetapkan Bahasa Indonesia sebagai bahasa negara."},
+
+{m:"TPU",t:"Peraturan Kepegawaian",q:"Salah satu kewajiban ASN adalah ...",o:["Menyalahgunakan wewenang","Menjaga netralitas","Menerima gratifikasi","Mengutamakan kepentingan pribadi"],a:1,e:"ASN wajib menjaga netralitas dan menjalankan tugas secara profesional."},
+{m:"TPU",t:"Pelayanan Publik",q:"Pelayanan publik harus dilaksanakan dengan prinsip ...",o:["Diskriminatif","Transparan dan akuntabel","Tertutup","Mengutamakan kelompok tertentu"],a:1,e:"Pelayanan publik harus transparan, akuntabel, dan tidak diskriminatif."},
+{m:"TPU",t:"Good Governance",q:"Prinsip akuntabilitas berarti ...",o:["Bebas dari pengawasan","Dapat dipertanggungjawabkan","Tidak perlu laporan","Keputusan tanpa dasar"],a:1,e:"Akuntabilitas berarti setiap tindakan dan hasil kerja dapat dipertanggungjawabkan."},
+{m:"TPU",t:"Kebijakan Publik",q:"Kebijakan publik pada dasarnya merupakan ...",o:["Keputusan pemerintah untuk kepentingan publik","Keputusan pribadi pegawai","Aturan keluarga","Kegiatan swasta saja"],a:0,e:"Kebijakan publik merupakan keputusan atau tindakan pemerintah untuk menangani persoalan publik."},
+{m:"TPU",t:"Perkantoran",q:"Surat yang diterima oleh suatu instansi disebut ...",o:["Surat keluar","Surat masuk","Nota dinas keluar","Surat pribadi"],a:1,e:"Surat masuk adalah surat yang diterima oleh instansi."},
+{m:"TPU",t:"Literasi Digital",q:"Salah satu cara menjaga keamanan akun digital adalah ...",o:["Membagikan kata sandi","Menggunakan kata sandi kuat","Memakai kata sandi yang sama di semua akun","Membuka semua tautan"],a:1,e:"Kata sandi kuat dan unik membantu melindungi akun."},
+
+{m:"TSI",t:"Renstra Instansi",q:"Renstra instansi merupakan dokumen perencanaan untuk periode ...",o:["Jangka pendek satu bulan","Jangka menengah lima tahun","Harian","Tidak memiliki periode"],a:1,e:"Renstra instansi merupakan dokumen perencanaan strategis jangka menengah lima tahunan."},
+{m:"TSI",t:"SOTK",q:"SOTK merupakan singkatan dari ...",o:["Sistem Organisasi Tata Kerja","Struktur Organisasi dan Tata Kerja","Standar Operasional Tata Kegiatan","Sistem Operasional Tata Kantor"],a:1,e:"SOTK adalah Struktur Organisasi dan Tata Kerja."},
+{m:"TSI",t:"Organisasi",q:"Tujuan pembagian tugas dalam organisasi adalah ...",o:["Menciptakan tumpang tindih","Memperjelas tanggung jawab","Menghilangkan koordinasi","Menghambat pekerjaan"],a:1,e:"Pembagian tugas memperjelas fungsi, kewenangan, dan tanggung jawab."},
+
+{m:"TPM",t:"Manajemen",q:"Fungsi manajemen yang berkaitan dengan penyusunan rencana disebut ...",o:["Planning","Actuating","Controlling","Evaluating"],a:0,e:"Planning adalah fungsi perencanaan."},
+{m:"TPM",t:"Manajemen",q:"Pengawasan dalam manajemen bertujuan untuk ...",o:["Menghilangkan tujuan","Memastikan kegiatan sesuai rencana","Menghambat pegawai","Menghapus evaluasi"],a:1,e:"Pengawasan memastikan pelaksanaan sesuai rencana dan standar."},
+
+{m:"TKT",t:"Pelayanan Publik",q:"Sikap petugas ketika menghadapi masyarakat yang mengajukan keluhan adalah ...",o:["Mengabaikan","Mendengarkan dan menindaklanjuti","Menyalahkan masyarakat","Menolak tanpa penjelasan"],a:1,e:"Petugas perlu mendengarkan keluhan secara profesional dan menindaklanjutinya."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Dalam melaksanakan tugas, ASN harus berpedoman pada ...",o:["Kepentingan pribadi","Peraturan perundang-undangan","Perintah yang melanggar hukum","Kebiasaan pribadi"],a:1,e:"ASN harus bekerja sesuai ketentuan peraturan perundang-undangan."},
+
+{m:"TKP",t:"Bahasa Inggris",q:"The English word for 'pelayanan' is ...",o:["Service","Office","Building","Meeting"],a:0,e:"Service berarti pelayanan."},
+{m:"TKP",t:"Literasi Digital",q:"Phishing adalah tindakan ...",o:["Mencadangkan data","Penipuan untuk memperoleh informasi sensitif","Memperbarui perangkat","Mengamankan jaringan"],a:1,e:"Phishing merupakan upaya penipuan untuk memperoleh data sensitif."},
+
+{m:"Perkantoran",t:"Tata Naskah Dinas",q:"Naskah dinas digunakan sebagai sarana ...",o:["Komunikasi kedinasan","Komunikasi pribadi","Iklan komersial","Hiburan"],a:0,e:"Naskah dinas merupakan komunikasi resmi dalam pelaksanaan tugas kedinasan."},
+{m:"Perkantoran",t:"Kearsipan",q:"Tujuan utama pengarsipan dokumen adalah ...",o:["Mempersulit pencarian","Menjamin dokumen tertata dan mudah ditemukan","Menghilangkan dokumen","Menumpuk kertas"],a:1,e:"Pengarsipan membantu penyimpanan, pemeliharaan, dan penemuan kembali dokumen."},
+{m:"Perkantoran",t:"Surat Menyurat",q:"Buku agenda surat digunakan untuk ...",o:["Mencatat surat masuk dan keluar","Mencatat absensi tamu saja","Mencatat inventaris kendaraan","Menyusun anggaran"],a:0,e:"Buku agenda digunakan untuk pencatatan dan pengendalian surat."},
+{m:"Perkantoran",t:"Rapat",q:"Dokumen yang mencatat jalannya rapat disebut ...",o:["Daftar inventaris","Notula","Surat tugas","Kuitansi"],a:1,e:"Notula berisi catatan jalannya rapat dan hasil pembahasan."},
+{m:"Perkantoran",t:"Administrasi",q:"Salah satu tujuan inventarisasi barang kantor adalah ...",o:["Menghilangkan pengawasan","Mengetahui jumlah dan kondisi barang","Menghindari pencatatan","Menghapus tanggung jawab"],a:1,e:"Inventarisasi membantu pengendalian aset dan barang milik instansi."}
 ];
 
-let questions=[],answers=[],index=0,seconds=1800,interval=null;
-function start(pkg){
-let allowed=pkg==="Tingkat I"?["TWK","TPU","TSI"]:pkg==="Tingkat II"?["TWK","TPU","TPM","TSI"]:["UPKP"];
-questions=bank.filter(q=>allowed.includes(q[0])).sort(()=>Math.random()-.5);
-answers=Array(questions.length).fill(null);index=0;seconds=1800;
-document.getElementById("home").style.display="none";
-document.getElementById("result").style.display="none";
-document.getElementById("exam").style.display="block";
-document.getElementById("info").innerText="Paket "+pkg;
-clearInterval(interval);
-interval=setInterval(()=>{
-seconds--;
-document.getElementById("timer").innerText="Waktu: "+Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
-if(seconds<=0)finish();
-},1000);
-show();
+let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="";
+const paketSoal={
+tingkat1:["TWK","TPU","TSI"],
+tingkat2:["TWK","TPU","TPM","TSI"],
+upkp:["TWK","TKT","TSI","TKP"]
+};
+const durasi={tingkat1:90,tingkat2:120,upkp:90};
+
+function tampil(id){
+["home","latihan","ujian","hasil","riwayat"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
 }
-function show(){
-let q=questions[index];
-document.getElementById("number").innerText="Soal "+(index+1)+" / "+questions.length;
-document.getElementById("question").innerText=q[1];
-document.getElementById("options").innerHTML="";
-q.slice(2,6).forEach((v,i)=>{
+function beranda(){clearInterval(interval);tampil("home")}
+function acak(arr){return [...arr].sort(()=>Math.random()-.5)}
+function mulaiUjian(){
+const p=document.getElementById("paket").value;
+namaPaket=p==="tingkat1"?"Ujian Dinas Tingkat I":p==="tingkat2"?"Ujian Dinas Tingkat II":"UPKP D3–S3";
+soal=acak(bank.filter(x=>paketSoal[p].includes(x.m)));
+if(!soal.length){alert("Belum ada soal untuk paket ini.");return}
+mode="ujian";sisa=durasi[p]*60;
+mulai();
+}
+function bukaLatihan(){tampil("latihan")}
+function mulaiLatihan(){
+const m=document.getElementById("pilihMateri").value;
+soal=acak(bank.filter(x=>x.m===m));
+if(!soal.length){alert("Belum ada soal untuk materi ini.");return}
+namaPaket="Latihan "+m;mode="latihan";sisa=0;mulai();
+}
+function mulai(){
+jawaban=Array(soal.length).fill(null);pos=0;
+document.getElementById("judulUjian").textContent=namaPaket;
+tampil("ujian");render();
+clearInterval(interval);
+if(mode==="ujian"){
+updateTimer();
+interval=setInterval(()=>{sisa--;updateTimer();if(sisa<=0)selesai()},1000);
+}else document.getElementById("timer").textContent="MODE LATIHAN";
+}
+function updateTimer(){
+let m=Math.floor(sisa/60),d=sisa%60;
+document.getElementById("timer").textContent=String(m).padStart(2,"0")+":"+String(d).padStart(2,"0");
+}
+function render(){
+const q=soal[pos];
+document.getElementById("nomor").textContent="Soal "+(pos+1)+" dari "+soal.length;
+document.getElementById("bar").style.width=((pos+1)/soal.length*100)+"%";
+document.getElementById("pertanyaan").textContent=q.q;
+document.getElementById("kategori").textContent=q.m+" • "+q.t;
+const area=document.getElementById("opsi");area.innerHTML="";
+q.o.forEach((x,i)=>{
 let b=document.createElement("button");
-b.className="option"+(answers[index]===i?" selected":"");
-b.innerText=String.fromCharCode(65+i)+". "+v;
-b.onclick=()=>{answers[index]=i;show()};
-document.getElementById("options").appendChild(b);
+b.className="option"+(jawaban[pos]===i?" selected":"");
+b.textContent=String.fromCharCode(65+i)+". "+x;
+b.onclick=()=>{jawaban[pos]=i;render()};
+area.appendChild(b);
 });
-document.getElementById("explanation").innerText="";
 }
-function next(){if(index<questions.length-1){index++;show()}}
-function prev(){if(index>0){index--;show()}}
-function finish(){
+function sebelumnya(){if(pos>0){pos--;render()}}
+function berikutnya(){if(pos<soal.length-1){pos++;render()}else alert("Ini soal terakhir. Tekan Selesai untuk melihat hasil.")}
+function selesai(){
 clearInterval(interval);
-let correct=0;
-questions.forEach((q,i)=>{if(answers[i]===q[6])correct++});
-let score=Math.round(correct/questions.length*100);
-document.getElementById("exam").style.display="none";
-document.getElementById("result").style.display="block";
-document.getElementById("score").innerText=score;
-document.getElementById("detail").innerText=correct+" benar dari "+questions.length+" soal.";
-let h=JSON.parse(localStorage.getItem("pintarHistory")||"[]");
-h.unshift({date:new Date().toLocaleString("id-ID"),score});
-localStorage.setItem("pintarHistory",JSON.stringify(h.slice(0,20)));
-loadHistory();
+let benar=0;
+soal.forEach((q,i)=>{if(jawaban[i]===q.a)benar++});
+let nilai=Math.round(benar/soal.length*100);
+document.getElementById("nilai").textContent=nilai;
+document.getElementById("rincian").textContent="Benar: "+benar+" | Salah/tidak dijawab: "+(soal.length-benar)+" | Jumlah soal: "+soal.length;
+let data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+data.unshift({nama:namaPaket,nilai,tanggal:new Date().toLocaleString("id-ID"),benar,total:soal.length});
+localStorage.setItem("riwayatPintar",JSON.stringify(data.slice(0,30)));
+tampil("hasil");
 }
-function home(){
-document.getElementById("result").style.display="none";
-document.getElementById("home").style.display="block";
+function lihatPembahasan(){
+const area=document.getElementById("pembahasan");area.innerHTML="";
+soal.forEach((q,i)=>{
+let d=document.createElement("div");d.className="card";
+let hasil=jawaban[i]===q.a;
+d.innerHTML="<b>Soal "+(i+1)+"</b><p>"+q.q+"</p><p>Jawaban benar: <b>"+String.fromCharCode(65+q.a)+". "+q.o[q.a]+"</b></p><p>Jawaban kamu: "+(jawaban[i]===null?"Tidak dijawab":String.fromCharCode(65+jawaban[i])+". "+q.o[jawaban[i]])+"</p><p><b>"+(hasil?"Benar":"Belum tepat")+"</b></p><p class='small'>Pembahasan: "+q.e+"</p>";
+area.appendChild(d);
+});
+area.scrollIntoView({behavior:"smooth"});
 }
-function loadHistory(){
-let h=JSON.parse(localStorage.getItem("pintarHistory")||"[]");
-document.getElementById("history").innerHTML=h.length?h.map(x=>x.date+" — Nilai "+x.score).join("<br>"):"Belum ada riwayat ujian.";
+function riwayat(){
+const data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+const area=document.getElementById("daftarRiwayat");area.innerHTML="";
+if(!data.length)area.textContent="Belum ada riwayat latihan.";
+data.forEach(x=>{
+let d=document.createElement("div");d.className="card";
+d.innerHTML="<b>"+x.nama+"</b><p>Nilai: "+x.nilai+" | Benar: "+x.benar+"/"+x.total+"</p><p class='small'>"+x.tanggal+"</p>";
+area.appendChild(d);
+});
+tampil("riwayat");
 }
-loadHistory();
 </script>
 </body>
 </html>
