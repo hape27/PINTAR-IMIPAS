@@ -1,0 +1,644 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b2c">
+<title>PINTAR IMIPAS</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f2;color:#20352b}
+header{background:#123b2c;color:white;padding:24px 16px;text-align:center}
+header h1{margin:0;font-size:26px}
+header p{font-size:13px;margin:8px 0 0}
+main{max-width:760px;margin:auto;padding:14px}
+.card{background:white;border-radius:13px;padding:17px;margin:12px 0;box-shadow:0 2px 8px #0001}
+h2{font-size:19px;margin-top:0}
+button,select{width:100%;padding:13px;border:0;border-radius:9px;font-size:15px;margin:6px 0}
+button{background:#176b49;color:white;font-weight:bold;cursor:pointer}
+button.secondary{background:#e6eee8;color:#17432f}
+button.option{background:#edf3ef;color:#20352b;text-align:left;border:1px solid #dce8df;font-weight:normal}
+button.option.selected{background:#ccebd7;border:2px solid #176b49}
+button:disabled{opacity:.5}
+.small{font-size:13px;color:#68776e}
+.hidden{display:none!important}
+#timer{font-weight:bold;color:#b33;font-size:19px}
+.progress{height:8px;background:#e1e9e3;border-radius:8px;overflow:hidden}
+#bar{height:8px;background:#248653;width:0}
+.result{font-size:28px;font-weight:bold;color:#176b49}
+footer{text-align:center;padding:20px;color:#718078;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>PINTAR IMIPAS</h1>
+<p>Pusat Informasi dan Latihan Ujian Dinas Kementerian Imigrasi dan Pemasyarakatan</p>
+<p>Kementerian Imigrasi dan Pemasyarakatan</p>
+</header>
+<main>
+<section id="home">
+<div class="card">
+<h2>Selamat Datang</h2>
+<p>Belajar dan persiapkan diri menghadapi Ujian Dinas dan UPKP melalui latihan soal, simulasi CAT, serta pembahasan.</p>
+</div>
+<div class="card">
+<h2>Pilih Paket Ujian</h2>
+<select id="paket">
+<option value="tingkat1">Ujian Dinas Tingkat I (90 menit)</option>
+<option value="tingkat2">Ujian Dinas Tingkat II (120 menit)</option>
+<option value="upkp">UPKP D3–S3 (90 menit)</option>
+</select>
+<button onclick="mulaiUjian()">MULAI SIMULASI UJIAN</button>
+<button class="secondary" onclick="bukaLatihan()">LATIHAN PER MATERI</button>
+<button class="secondary" onclick="riwayat()">RIWAYAT NILAI</button>
+</div>
+<div class="card">
+<h2>Materi Pembelajaran</h2>
+<p class="small">Enam kategori ujian: TWK • TPU • TSI • TPM • TKT • TKP</p>
+<p class="small">Materi Perkantoran masuk dalam TPU dan TKT, bukan kategori ujian tersendiri.</p>
+<p class="small" id="statusBank"></p>
+</div>
+</section>
+
+<section id="latihan" class="hidden">
+<div class="card">
+<h2>Latihan Berdasarkan Materi</h2>
+<select id="pilihMateri">
+<option value="TWK">TWK - Wawasan Kebangsaan</option>
+<option value="TPU">TPU - Pengetahuan Umum</option>
+<option value="TSI">TSI - Substansi Instansi</option>
+<option value="TPM">TPM - Manajemen</option>
+<option value="TKT">TKT - Pengetahuan Teknis</option>
+<option value="TKP">TKP - Bahasa Inggris & Literasi Digital</option>
+</select>
+<button onclick="mulaiLatihan()">MULAI LATIHAN</button>
+<button class="secondary" onclick="beranda()">KEMBALI</button>
+</div>
+</section>
+
+<section id="ujian" class="hidden">
+<div class="card">
+<div style="display:flex;justify-content:space-between;gap:10px">
+<strong id="judulUjian">Simulasi Ujian</strong>
+<span id="timer">90:00</span>
+</div>
+<p class="small" id="nomor"></p><p class="small" id="statusJawaban"></p>
+<div class="progress"><div id="bar"></div></div>
+</div>
+<div class="card">
+<h2 id="pertanyaan"></h2>
+<div id="opsi"></div>
+<p class="small" id="kategori"></p>
+<button class="secondary" onclick="sebelumnya()">SOAL SEBELUMNYA</button>
+<button onclick="berikutnya()">SOAL BERIKUTNYA</button>
+<button style="background:#a43d32" onclick="konfirmasiSelesai()">SELESAI / KUMPULKAN</button>
+</div>
+</section>
+
+<section id="hasil" class="hidden">
+<div class="card">
+<h2>Hasil Latihan</h2>
+<p>Nilai kamu:</p>
+<div class="result" id="nilai"></div>
+<p id="rincian"></p><div id="rincianKategori"></div>
+<p class="small">Hasil ini merupakan nilai latihan, bukan hasil resmi CAT BKN.</p>
+<button onclick="lihatPembahasan()">LIHAT PEMBAHASAN</button>
+<button class="secondary" onclick="beranda()">KEMBALI KE BERANDA</button>
+</div>
+<div id="pembahasan"></div>
+</section>
+
+<section id="riwayat" class="hidden">
+<div class="card">
+<h2>Riwayat Nilai</h2>
+<div id="daftarRiwayat"></div>
+<button class="secondary" onclick="beranda()">KEMBALI</button>
+</div>
+</section>
+</main>
+<footer>PINTAR IMIPAS • Media belajar mandiri</footer>
+
+<script>
+const bank=[
+{m:"TWK",t:"Pancasila",q:"Dasar negara Republik Indonesia adalah ...",o:["Pancasila","UUD 1945","Bhinneka Tunggal Ika","Proklamasi"],a:0,e:"Pancasila merupakan dasar negara Republik Indonesia."},
+{m:"TWK",t:"Pancasila",q:"Sila ketiga Pancasila berbunyi ...",o:["Keadilan sosial bagi seluruh rakyat Indonesia","Persatuan Indonesia","Ketuhanan Yang Maha Esa","Kemanusiaan yang adil dan beradab"],a:1,e:"Sila ketiga adalah Persatuan Indonesia."},
+{m:"TWK",t:"UUD 1945",q:"UUD Negara Republik Indonesia Tahun 1945 disahkan pada tanggal ...",o:["17 Agustus 1945","18 Agustus 1945","1 Juni 1945","20 Mei 1908"],a:1,e:"UUD 1945 disahkan oleh PPKI pada 18 Agustus 1945."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Proklamasi Kemerdekaan Indonesia dibacakan pada ...",o:["1 Juni 1945","17 Agustus 1945","18 Agustus 1945","10 November 1945"],a:1,e:"Proklamasi dibacakan pada 17 Agustus 1945."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Bahasa negara Indonesia menurut UUD 1945 adalah ...",o:["Bahasa Melayu","Bahasa Indonesia","Bahasa daerah","Bahasa persatuan saja"],a:1,e:"Pasal 36 UUD 1945 menetapkan Bahasa Indonesia sebagai bahasa negara."},
+
+{m:"TPU",t:"Peraturan Kepegawaian",q:"Salah satu kewajiban ASN adalah ...",o:["Menyalahgunakan wewenang","Menjaga netralitas","Menerima gratifikasi","Mengutamakan kepentingan pribadi"],a:1,e:"ASN wajib menjaga netralitas dan menjalankan tugas secara profesional."},
+{m:"TPU",t:"Pelayanan Publik",q:"Pelayanan publik harus dilaksanakan dengan prinsip ...",o:["Diskriminatif","Transparan dan akuntabel","Tertutup","Mengutamakan kelompok tertentu"],a:1,e:"Pelayanan publik harus transparan, akuntabel, dan tidak diskriminatif."},
+{m:"TPU",t:"Good Governance",q:"Prinsip akuntabilitas berarti ...",o:["Bebas dari pengawasan","Dapat dipertanggungjawabkan","Tidak perlu laporan","Keputusan tanpa dasar"],a:1,e:"Akuntabilitas berarti setiap tindakan dan hasil kerja dapat dipertanggungjawabkan."},
+{m:"TPU",t:"Kebijakan Publik",q:"Kebijakan publik pada dasarnya merupakan ...",o:["Keputusan pemerintah untuk kepentingan publik","Keputusan pribadi pegawai","Aturan keluarga","Kegiatan swasta saja"],a:0,e:"Kebijakan publik merupakan keputusan atau tindakan pemerintah untuk menangani persoalan publik."},
+{m:"TPU",t:"Perkantoran",q:"Surat yang diterima oleh suatu instansi disebut ...",o:["Surat keluar","Surat masuk","Nota dinas keluar","Surat pribadi"],a:1,e:"Surat masuk adalah surat yang diterima oleh instansi."},
+{m:"TPU",t:"Literasi Digital",q:"Salah satu cara menjaga keamanan akun digital adalah ...",o:["Membagikan kata sandi","Menggunakan kata sandi kuat","Memakai kata sandi yang sama di semua akun","Membuka semua tautan"],a:1,e:"Kata sandi kuat dan unik membantu melindungi akun."},
+
+{m:"TSI",t:"Renstra Instansi",q:"Renstra instansi merupakan dokumen perencanaan untuk periode ...",o:["Jangka pendek satu bulan","Jangka menengah lima tahun","Harian","Tidak memiliki periode"],a:1,e:"Renstra instansi merupakan dokumen perencanaan strategis jangka menengah lima tahunan."},
+{m:"TSI",t:"SOTK",q:"SOTK merupakan singkatan dari ...",o:["Sistem Organisasi Tata Kerja","Struktur Organisasi dan Tata Kerja","Standar Operasional Tata Kegiatan","Sistem Operasional Tata Kantor"],a:1,e:"SOTK adalah Struktur Organisasi dan Tata Kerja."},
+{m:"TSI",t:"Organisasi",q:"Tujuan pembagian tugas dalam organisasi adalah ...",o:["Menciptakan tumpang tindih","Memperjelas tanggung jawab","Menghilangkan koordinasi","Menghambat pekerjaan"],a:1,e:"Pembagian tugas memperjelas fungsi, kewenangan, dan tanggung jawab."},
+
+{m:"TPM",t:"Manajemen",q:"Fungsi manajemen yang berkaitan dengan penyusunan rencana disebut ...",o:["Planning","Actuating","Controlling","Evaluating"],a:0,e:"Planning adalah fungsi perencanaan."},
+{m:"TPM",t:"Manajemen",q:"Pengawasan dalam manajemen bertujuan untuk ...",o:["Menghilangkan tujuan","Memastikan kegiatan sesuai rencana","Menghambat pegawai","Menghapus evaluasi"],a:1,e:"Pengawasan memastikan pelaksanaan sesuai rencana dan standar."},
+
+{m:"TKT",t:"Pelayanan Publik",q:"Sikap petugas ketika menghadapi masyarakat yang mengajukan keluhan adalah ...",o:["Mengabaikan","Mendengarkan dan menindaklanjuti","Menyalahkan masyarakat","Menolak tanpa penjelasan"],a:1,e:"Petugas perlu mendengarkan keluhan secara profesional dan menindaklanjutinya."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Dalam melaksanakan tugas, ASN harus berpedoman pada ...",o:["Kepentingan pribadi","Peraturan perundang-undangan","Perintah yang melanggar hukum","Kebiasaan pribadi"],a:1,e:"ASN harus bekerja sesuai ketentuan peraturan perundang-undangan."},
+
+{m:"TKP",t:"Bahasa Inggris",q:"The English word for 'pelayanan' is ...",o:["Service","Office","Building","Meeting"],a:0,e:"Service berarti pelayanan."},
+{m:"TKP",t:"Literasi Digital",q:"Phishing adalah tindakan ...",o:["Mencadangkan data","Penipuan untuk memperoleh informasi sensitif","Memperbarui perangkat","Mengamankan jaringan"],a:1,e:"Phishing merupakan upaya penipuan untuk memperoleh data sensitif."},
+
+{m:"TPU",t:"Perkantoran - Tata Naskah Dinas",q:"Naskah dinas digunakan sebagai sarana ...",o:["Komunikasi kedinasan","Komunikasi pribadi","Iklan komersial","Hiburan"],a:0,e:"Naskah dinas merupakan komunikasi resmi dalam pelaksanaan tugas kedinasan."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Tujuan utama pengarsipan dokumen adalah ...",o:["Mempersulit pencarian","Menjamin dokumen tertata dan mudah ditemukan","Menghilangkan dokumen","Menumpuk kertas"],a:1,e:"Pengarsipan membantu penyimpanan, pemeliharaan, dan penemuan kembali dokumen."},
+{m:"TPU",t:"Perkantoran - Surat Menyurat",q:"Buku agenda surat digunakan untuk ...",o:["Mencatat surat masuk dan keluar","Mencatat absensi tamu saja","Mencatat inventaris kendaraan","Menyusun anggaran"],a:0,e:"Buku agenda digunakan untuk pencatatan dan pengendalian surat."},
+{m:"TKT",t:"Perkantoran - Rapat",q:"Dokumen yang mencatat jalannya rapat disebut ...",o:["Daftar inventaris","Notula","Surat tugas","Kuitansi"],a:1,e:"Notula berisi catatan jalannya rapat dan hasil pembahasan."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Salah satu tujuan inventarisasi barang kantor adalah ...",o:["Menghilangkan pengawasan","Mengetahui jumlah dan kondisi barang","Menghindari pencatatan","Menghapus tanggung jawab"],a:1,e:"Inventarisasi membantu pengendalian aset dan barang milik instansi."}
+,
+{m:"TWK",t:"Pancasila",q:"Lambang sila kedua Pancasila adalah ...",o:["Bintang","Rantai","Pohon beringin","Kepala banteng"],a:1,e:"Rantai melambangkan hubungan antarmanusia yang saling membantu dan beradab."},
+{m:"TWK",t:"UUD 1945",q:"Menurut Pasal 1 ayat (1) UUD 1945, bentuk negara Indonesia adalah ...",o:["Serikat","Kesatuan","Monarki","Konfederasi"],a:1,e:"Pasal 1 ayat (1) menyatakan Indonesia ialah Negara Kesatuan yang berbentuk Republik."},
+{m:"TWK",t:"UUD 1945",q:"Kedaulatan berada di tangan rakyat dan dilaksanakan menurut ...",o:["Keputusan pejabat","Undang-Undang Dasar","Kebiasaan daerah","Peraturan organisasi"],a:1,e:"Ketentuan tersebut tercantum dalam Pasal 1 ayat (2) UUD 1945."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Badan yang mengesahkan UUD 1945 pada 18 Agustus 1945 adalah ...",o:["BPUPKI","PPKI","KNIP","Volksraad"],a:1,e:"PPKI mengesahkan UUD 1945 sehari setelah Proklamasi."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Penulisan kata baku yang tepat adalah ...",o:["Resiko","Risiko","Resikko","Riziko"],a:1,e:"Bentuk baku menurut kaidah bahasa Indonesia adalah risiko."},
+
+{m:"TPU",t:"Kepegawaian",q:"Pegawai ASN terdiri atas ...",o:["PNS dan PPPK","PNS dan pegawai swasta","PPPK dan tenaga honorer saja","Pejabat dan masyarakat"],a:0,e:"UU Nomor 20 Tahun 2023 menyebut Pegawai ASN terdiri atas PNS dan PPPK."},
+{m:"TPU",t:"Pelayanan Publik",q:"Menurut UU Pelayanan Publik, standar pelayanan disusun dengan memperhatikan ...",o:["Keinginan petugas saja","Kemampuan penyelenggara, kebutuhan masyarakat, dan kondisi lingkungan","Kepentingan pribadi pimpinan","Jumlah pegawai semata"],a:1,e:"Penyelenggara wajib menyusun dan menetapkan standar pelayanan dengan mempertimbangkan tiga hal tersebut."},
+{m:"TPU",t:"Perencanaan Pembangunan Nasional",q:"Dokumen perencanaan pembangunan nasional untuk jangka panjang memiliki periode ...",o:["5 tahun","10 tahun","20 tahun","25 tahun"],a:2,e:"Sistem perencanaan pembangunan nasional mengenal RPJP untuk periode 20 tahun."},
+{m:"TPU",t:"Tata Kelola Pemerintahan",q:"Prinsip transparansi dalam tata kelola pemerintahan menekankan ...",o:["Keterbukaan informasi yang relevan","Pengambilan keputusan tertutup","Penghapusan laporan","Pembatasan pengawasan publik"],a:0,e:"Transparansi mendorong keterbukaan informasi dan proses pemerintahan."},
+{m:"TPU",t:"Perkantoran",q:"Jika menerima surat dinas yang perlu segera ditindaklanjuti, langkah awal yang tepat adalah ...",o:["Menyimpan tanpa mencatat","Mencatat dan meneruskan sesuai prosedur disposisi","Mengubah isi surat","Mengabaikan tanggal surat"],a:1,e:"Pencatatan dan penerusan sesuai prosedur menjaga kendali surat dan tindak lanjut."},
+
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"RPJMD merupakan dokumen perencanaan pembangunan daerah untuk periode ...",o:["1 tahun","5 tahun","10 tahun","20 tahun"],a:1,e:"RPJMD merupakan rencana pembangunan daerah jangka menengah untuk lima tahun."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"RPJMN merupakan penjabaran visi, misi, dan program Presiden untuk periode ...",o:["1 tahun","3 tahun","5 tahun","20 tahun"],a:2,e:"RPJMN merupakan rencana pembangunan nasional jangka menengah lima tahunan."},
+{m:"TSI",t:"Renstra Instansi",q:"Indikator kinerja dalam dokumen perencanaan berguna untuk ...",o:["Mengukur pencapaian sasaran","Menggantikan seluruh kegiatan","Menghilangkan evaluasi","Menentukan jumlah rapat"],a:0,e:"Indikator menjadi ukuran untuk menilai pencapaian sasaran atau hasil."},
+{m:"TSI",t:"SOTK",q:"Dalam struktur organisasi, garis koordinasi terutama diperlukan untuk ...",o:["Mencegah komunikasi antarunit","Menyelaraskan pelaksanaan tugas antarunit","Menghapus pembagian kewenangan","Membuat tugas rangkap"],a:1,e:"Koordinasi menyelaraskan pekerjaan agar tujuan organisasi tercapai secara terpadu."},
+{m:"TSI",t:"Renstra Instansi",q:"Keterkaitan Renstra kementerian/lembaga dengan RPJMN dimaksudkan agar ...",o:["Sasaran instansi selaras dengan prioritas nasional","Instansi bebas dari target nasional","Program tidak perlu dievaluasi","Anggaran tidak terkait kinerja"],a:0,e:"Renstra kementerian/lembaga menjabarkan arah dan sasaran pembangunan nasional sesuai tugas dan fungsi instansi."},
+
+{m:"TPM",t:"Manajemen",q:"Kegiatan membagi pekerjaan, menetapkan hubungan kerja, dan mengalokasikan sumber daya termasuk fungsi ...",o:["Perencanaan","Pengorganisasian","Pengawasan","Pelaporan"],a:1,e:"Pengorganisasian menyusun struktur tugas, kewenangan, dan sumber daya."},
+{m:"TPM",t:"Manajemen",q:"Dalam manajemen, actuating paling tepat diartikan sebagai ...",o:["Menggerakkan dan mengarahkan pelaksanaan","Menyusun struktur organisasi","Menentukan tujuan jangka panjang","Memeriksa laporan akhir saja"],a:0,e:"Actuating adalah upaya menggerakkan orang agar rencana dapat dilaksanakan."},
+{m:"TPM",t:"Manajemen",q:"Evaluasi kinerja dilakukan terutama untuk ...",o:["Mencari kesalahan tanpa solusi","Menilai hasil dan menentukan perbaikan","Menghindari pengukuran","Mengganti tujuan setiap hari"],a:1,e:"Evaluasi membandingkan hasil dengan target dan menjadi dasar perbaikan."},
+{m:"TPM",t:"Manajemen",q:"Delegasi wewenang yang baik harus disertai dengan ...",o:["Ketidakjelasan tugas","Kejelasan tanggung jawab dan batas kewenangan","Penghapusan pengawasan","Pelepasan seluruh akuntabilitas pimpinan"],a:1,e:"Delegasi membutuhkan kejelasan tugas, kewenangan, dan akuntabilitas."},
+{m:"TPM",t:"Manajemen",q:"Ketika target unit kerja tidak tercapai, langkah manajerial yang tepat adalah ...",o:["Menyembunyikan hasil","Menganalisis penyebab dan menetapkan tindakan korektif","Menghapus indikator","Menyalahkan pihak lain tanpa evaluasi"],a:1,e:"Analisis penyebab dan tindakan korektif membantu memperbaiki kinerja."},
+
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Arsip yang masih sering digunakan dalam kegiatan kerja sehari-hari disebut ...",o:["Arsip aktif","Arsip statis","Arsip musnah","Arsip pribadi"],a:0,e:"Arsip aktif memiliki frekuensi penggunaan tinggi dan/atau terus-menerus."},
+{m:"TKT",t:"Perkantoran - Tata Naskah Dinas",q:"Disposisi pada surat dinas berfungsi untuk ...",o:["Memberikan arahan tindak lanjut","Menghapus surat dari agenda","Mengubah pejabat penandatangan","Menggantikan isi surat"],a:0,e:"Disposisi berisi petunjuk atau arahan pimpinan atas surat yang diterima."},
+{m:"TKT",t:"Pelayanan Publik",q:"Apabila pemohon belum melengkapi persyaratan layanan, petugas sebaiknya ...",o:["Menolak tanpa penjelasan","Menjelaskan kekurangan persyaratan secara jelas","Meminta imbalan","Mengubah persyaratan sendiri"],a:1,e:"Petugas perlu memberi informasi yang jelas sesuai standar pelayanan."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Konflik kepentingan dalam pelaksanaan tugas harus ...",o:["Disembunyikan","Dikelola dan dihindari sesuai ketentuan","Dimanfaatkan untuk keuntungan pribadi","Dianggap sebagai hal biasa"],a:1,e:"Konflik kepentingan perlu dicegah dan ditangani agar keputusan tetap objektif."},
+{m:"TKT",t:"Kebijakan Publik",q:"Pelaksanaan kebijakan publik perlu dievaluasi untuk mengetahui ...",o:["Efektivitas pencapaian tujuan","Popularitas pribadi pelaksana","Jumlah dokumen yang dicetak saja","Keuntungan pribadi pejabat"],a:0,e:"Evaluasi menilai apakah kebijakan mencapai tujuan dan memberi manfaat."},
+
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct sentence: 'Petugas sedang melayani masyarakat.'",o:["The officer is serving the public.","The officer are serving public.","The officer serving the public yesterday.","The officer serve the publics now."],a:0,e:"Present continuous menggunakan is + verb-ing untuk subjek tunggal."},
+{m:"TKP",t:"Bahasa Inggris",q:"The closest meaning of 'accurate' is ...",o:["Correct","Late","Difficult","Expensive"],a:0,e:"Accurate berarti tepat atau benar."},
+{m:"TKP",t:"Literasi Digital",q:"Anda menerima email yang meminta kata sandi melalui tautan tidak dikenal. Tindakan paling aman adalah ...",o:["Segera mengisi data","Meneruskan ke semua rekan","Tidak membuka tautan dan melaporkannya","Membalas dengan kata sandi palsu"],a:2,e:"Permintaan kredensial melalui tautan tidak dikenal merupakan indikasi phishing."},
+{m:"TKP",t:"Literasi Digital",q:"Sebelum membagikan informasi dari media sosial, sebaiknya ...",o:["Memeriksa sumber dan kebenarannya","Melihat jumlah tanda suka saja","Langsung meneruskan","Mengubah judul agar menarik"],a:0,e:"Verifikasi sumber dan konteks membantu mencegah penyebaran informasi keliru."},
+{m:"TKP",t:"Literasi Digital",q:"Data pribadi sensitif milik pengguna layanan harus ...",o:["Dibagikan di grup umum","Diakses hanya sesuai kewenangan dan kebutuhan","Disimpan pada perangkat publik tanpa pengamanan","Dikirim ke alamat tidak dikenal"],a:1,e:"Akses data pribadi harus dibatasi dan dilindungi sesuai prinsip pelindungan data."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 27 ayat (1) UUD 1945 menegaskan persamaan ...",o:["Kedudukan warga negara di dalam hukum dan pemerintahan","Penghasilan seluruh warga","Jabatan seluruh penduduk","Bahasa daerah"],a:0,e:"Pasal 27 ayat (1) menyatakan segala warga negara bersamaan kedudukannya di dalam hukum dan pemerintahan."},
+{m:"TPU",t:"Pelayanan Publik",q:"Komponen standar pelayanan yang menjelaskan batas waktu penyelesaian layanan adalah ...",o:["Jangka waktu penyelesaian","Kompetensi pelaksana","Pengawasan internal","Jumlah pelaksana"],a:0,e:"Jangka waktu penyelesaian merupakan salah satu komponen standar pelayanan dalam UU Nomor 25 Tahun 2009."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Musrenbang dalam proses perencanaan pembangunan berfungsi sebagai forum ...",o:["Partisipasi dan penyelarasan usulan pembangunan","Penetapan sanksi pegawai","Pemeriksaan barang inventaris","Penerbitan surat dinas"],a:0,e:"Musyawarah perencanaan pembangunan menjadi forum antarpemangku kepentingan untuk membahas dan menyelaraskan rencana."},
+{m:"TPM",t:"Manajemen",q:"Pendekatan SMART dalam penyusunan sasaran menekankan sasaran yang ...",o:["Spesifik dan terukur","Rahasia dan tidak tertulis","Berubah setiap hari","Tidak memiliki batas waktu"],a:0,e:"SMART umumnya merujuk pada specific, measurable, achievable, relevant, dan time-bound."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Peminjaman arsip dinamis sebaiknya dicatat agar ...",o:["Keberadaan dan pengembaliannya dapat dipantau","Arsip tidak dapat ditemukan","Peminjam tidak diketahui","Arsip dapat dibawa tanpa batas"],a:0,e:"Pencatatan peminjaman menjaga kendali dan jejak penggunaan arsip."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct response to 'Could you help me, please?'",o:["Certainly, how can I help?","Yesterday at noon.","I am a document.","No, it is blue."],a:0,e:"Certainly, how can I help? adalah respons sopan dan sesuai konteks permintaan bantuan."},
+{m:"TWK",t:"Pancasila",q:"Sikap mendahulukan kepentingan bangsa di atas kepentingan pribadi mencerminkan nilai ...",o:["Persatuan","Individualisme","Diskriminasi","Egoisme"],a:0,e:"Persatuan Indonesia menekankan kepentingan bersama dan keutuhan bangsa."},
+{m:"TWK",t:"Pancasila",q:"Sila kelima Pancasila menekankan ...",o:["Keadilan sosial","Kekuasaan mutlak","Persaingan bebas tanpa batas","Kepentingan golongan"],a:0,e:"Sila kelima berbunyi Keadilan Sosial bagi Seluruh Rakyat Indonesia."},
+{m:"TWK",t:"UUD 1945",q:"Menurut UUD 1945, setiap warga negara berhak mendapat ...",o:["Pendidikan","Jabatan tanpa syarat","Kekebalan hukum","Fasilitas khusus"],a:0,e:"Pasal 31 ayat (1) menyatakan setiap warga negara berhak mendapat pendidikan."},
+{m:"TWK",t:"UUD 1945",q:"Lembaga yang berwenang menguji undang-undang terhadap UUD adalah ...",o:["Mahkamah Konstitusi","Mahkamah Agung","Komisi Yudisial","BPK"],a:0,e:"Mahkamah Konstitusi berwenang menguji undang-undang terhadap UUD."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Organisasi Budi Utomo berdiri pada tahun ...",o:["1908","1928","1945","1949"],a:0,e:"Budi Utomo berdiri pada 20 Mei 1908, yang diperingati sebagai Hari Kebangkitan Nasional."},
+{m:"TPU",t:"Perencanaan Pembangunan Nasional",q:"RPJMN merupakan penjabaran RPJPN untuk periode ...",o:["5 tahun","10 tahun","15 tahun","20 tahun"],a:0,e:"RPJMN merupakan rencana pembangunan nasional jangka menengah lima tahunan."},
+{m:"TPU",t:"Kepegawaian",q:"Sikap profesional ASN ditunjukkan dengan ...",o:["Bekerja sesuai kompetensi dan kode etik","Mengutamakan kepentingan pribadi","Mengabaikan standar kerja","Membocorkan data kedinasan"],a:0,e:"Profesionalitas menuntut kompetensi, etika, dan kinerja sesuai ketentuan."},
+{m:"TPU",t:"Pelayanan Publik",q:"Pengaduan masyarakat terhadap layanan harus ...",o:["Dicatat dan ditindaklanjuti sesuai mekanisme","Dihapus agar tidak terlihat","Dibiarkan tanpa jawaban","Dibalas dengan ancaman"],a:0,e:"Pengelolaan pengaduan merupakan bagian penting peningkatan kualitas pelayanan publik."},
+{m:"TPU",t:"Perkantoran",q:"Agenda rapat yang baik sebaiknya dibagikan ...",o:["Sebelum rapat agar peserta dapat mempersiapkan diri","Setelah rapat selesai saja","Hanya kepada notulis","Tidak perlu dibagikan"],a:0,e:"Agenda awal membantu peserta memahami tujuan dan menyiapkan bahan rapat."},
+{m:"TPU",t:"Literasi Digital",q:"Cadangan data (backup) berguna untuk ...",o:["Memulihkan data saat hilang atau rusak","Menyebarkan data ke publik","Menghapus jejak keamanan","Mengganti seluruh kata sandi"],a:0,e:"Backup menyediakan salinan untuk pemulihan ketika data utama bermasalah."},
+{m:"TSI",t:"SOTK",q:"Penataan organisasi yang efektif perlu menghindari ...",o:["Tumpang tindih fungsi dan kewenangan","Kejelasan tugas","Koordinasi","Akuntabilitas"],a:0,e:"Pembagian fungsi yang jelas mencegah duplikasi dan konflik kewenangan."},
+{m:"TSI",t:"Renstra Instansi",q:"Analisis lingkungan strategis dalam penyusunan Renstra berguna untuk ...",o:["Memahami faktor internal dan eksternal","Menentukan warna logo","Menghapus indikator","Mengganti struktur tanpa kajian"],a:0,e:"Analisis strategis membantu merumuskan sasaran dan strategi yang relevan."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"RPJPD merupakan rencana pembangunan daerah untuk jangka ...",o:["Panjang","Tahunan","Bulanan","Mingguan"],a:0,e:"RPJPD adalah rencana pembangunan daerah jangka panjang."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Dokumen rencana kerja perangkat daerah tahunan dikenal sebagai ...",o:["Renja Perangkat Daerah","RPJPD","RPJMN","Renstra Nasional"],a:0,e:"Renja Perangkat Daerah merupakan dokumen perencanaan tahunan perangkat daerah."},
+{m:"TSI",t:"Renstra Instansi",q:"Cascading kinerja bertujuan untuk ...",o:["Menurunkan sasaran organisasi ke unit dan individu secara selaras","Menghilangkan target unit","Mengganti evaluasi dengan rapat","Membuat indikator tidak terkait"],a:0,e:"Cascading menyelaraskan kontribusi unit dan individu terhadap sasaran organisasi."},
+{m:"TPM",t:"Manajemen",q:"Pengambilan keputusan berbasis bukti menggunakan ...",o:["Data dan informasi yang relevan","Dugaan tanpa verifikasi","Tekanan pribadi","Rumor"],a:0,e:"Bukti dan data relevan meningkatkan kualitas keputusan."},
+{m:"TPM",t:"Manajemen",q:"Gaya kepemimpinan partisipatif mendorong ...",o:["Keterlibatan anggota dalam proses yang relevan","Larangan memberi masukan","Keputusan tanpa komunikasi","Penghapusan tanggung jawab"],a:0,e:"Kepemimpinan partisipatif melibatkan anggota dalam pembahasan dan pemecahan masalah."},
+{m:"TPM",t:"Manajemen",q:"Salah satu manfaat SOP adalah ...",o:["Menstandarkan proses kerja","Membuat prosedur selalu berubah","Menghilangkan kontrol mutu","Membatasi kejelasan tugas"],a:0,e:"SOP memberi pedoman kerja yang konsisten dan terukur."},
+{m:"TPM",t:"Manajemen",q:"Jika terjadi konflik antaranggota tim, pimpinan sebaiknya ...",o:["Memfasilitasi dialog dan mencari penyelesaian objektif","Memihak tanpa mendengar","Membiarkan konflik membesar","Menyebarkan masalah ke publik"],a:0,e:"Dialog dan penyelesaian objektif membantu memulihkan kerja sama."},
+{m:"TPM",t:"Manajemen",q:"Pemantauan berkala terhadap pelaksanaan program bertujuan ...",o:["Mendeteksi hambatan lebih awal","Mengganti tujuan setiap hari","Menghapus akuntabilitas","Menunda tindakan korektif"],a:0,e:"Monitoring berkala memungkinkan koreksi saat program berjalan."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Arsip vital adalah arsip yang ...",o:["Menjadi persyaratan dasar kelangsungan operasional dan tidak tergantikan","Selalu boleh dimusnahkan","Tidak memiliki nilai guna","Hanya berupa surat pribadi"],a:0,e:"Arsip vital memiliki peran penting bagi keberlangsungan organisasi."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Pencatatan inventaris kantor perlu memuat ...",o:["Identitas dan kondisi barang","Kata sandi pegawai","Data keluarga","Informasi pribadi yang tidak relevan"],a:0,e:"Inventaris memerlukan identitas barang dan informasi kondisi untuk pengendalian."},
+{m:"TKT",t:"Pelayanan Publik",q:"Informasi biaya layanan seharusnya ...",o:["Jelas dan diumumkan sesuai ketentuan","Disampaikan berbeda kepada tiap pemohon tanpa dasar","Dirahasiakan seluruhnya","Dapat berubah tanpa pemberitahuan"],a:0,e:"Informasi biaya harus transparan dan sesuai standar pelayanan."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Disiplin PNS antara lain bertujuan untuk ...",o:["Menjamin ketertiban dan kelancaran pelaksanaan tugas","Membatasi pelayanan masyarakat","Menghapus kewajiban pegawai","Memberi keistimewaan pribadi"],a:0,e:"PP 94/2021 mengatur disiplin PNS untuk menjaga kewajiban dan tata tertib."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Pengendalian internal membantu organisasi ...",o:["Mencapai tujuan secara efektif dan menjaga akuntabilitas","Menghilangkan seluruh dokumentasi","Mencegah semua bentuk evaluasi","Membebaskan proses dari pengawasan"],a:0,e:"Pengendalian internal memberi keyakinan memadai atas pencapaian tujuan organisasi."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct word: 'Please ___ the attached form.'",o:["Complete","Completes","Completed","Completing"],a:0,e:"Please diikuti bentuk dasar kata kerja: complete."},
+{m:"TKP",t:"Bahasa Inggris",q:"'The meeting has been postponed' means ...",o:["Rapat telah ditunda","Rapat telah dimulai","Rapat dibatalkan permanen","Rapat dipercepat"],a:0,e:"Postponed berarti ditunda ke waktu lain."},
+{m:"TKP",t:"Literasi Digital",q:"Mengunci layar komputer saat meninggalkan meja kerja bertujuan ...",o:["Mencegah akses tanpa izin","Mempercepat koneksi internet","Menghapus dokumen","Mematikan antivirus"],a:0,e:"Penguncian layar mencegah orang lain mengakses sesi kerja tanpa izin."},
+{m:"TKP",t:"Literasi Digital",q:"Informasi rahasia kedinasan sebaiknya dikirim melalui ...",o:["Kanal resmi yang disetujui dan aman","Akun media sosial pribadi","Grup publik","Tautan terbuka tanpa kontrol"],a:0,e:"Informasi kedinasan harus dibagikan melalui kanal yang aman dan berwenang."},
+{m:"TKP",t:"Literasi Digital",q:"Jejak digital adalah ...",o:["Rekaman aktivitas seseorang di lingkungan digital","Perangkat keras komputer","Jaringan listrik","Program pengolah angka"],a:0,e:"Jejak digital merupakan data yang tertinggal dari aktivitas online."}
+,
+{m:"TWK",t:"Pancasila",q:"Contoh perilaku yang mencerminkan sila kedua adalah ...",o:["Menghargai martabat setiap manusia","Memaksakan pendapat","Membeda-bedakan layanan","Mengutamakan kelompok sendiri"],a:0,e:"Sila kedua menekankan kemanusiaan yang adil dan beradab."},
+{m:"TWK",t:"Pancasila",q:"Menghargai hasil keputusan musyawarah merupakan pengamalan sila ...",o:["Pertama","Kedua","Keempat","Kelima"],a:2,e:"Sila keempat mengandung nilai permusyawaratan dan perwakilan."},
+{m:"TWK",t:"UUD 1945",q:"Menurut Pasal 29 ayat (2), negara menjamin kemerdekaan tiap-tiap penduduk untuk ...",o:["Memeluk agama dan beribadat menurut agamanya","Tidak menaati hukum","Membentuk lembaga negara","Menguasai sumber daya negara"],a:0,e:"Pasal 29 ayat (2) menjamin kemerdekaan penduduk untuk memeluk agama dan beribadat."},
+{m:"TWK",t:"UUD 1945",q:"Bendera Negara Indonesia adalah ...",o:["Merah Putih","Merah Biru","Putih Hijau","Merah Kuning"],a:0,e:"Pasal 35 UUD 1945 menetapkan Sang Merah Putih sebagai bendera negara."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Sumpah Pemuda diikrarkan pada tanggal ...",o:["20 Mei 1908","28 Oktober 1928","1 Juni 1945","10 November 1945"],a:1,e:"Kongres Pemuda II menghasilkan ikrar Sumpah Pemuda pada 28 Oktober 1928."},
+{m:"TPU",t:"Kepegawaian",q:"Salah satu asas penyelenggaraan kebijakan dan manajemen ASN adalah ...",o:["Kepastian hukum","Kepentingan pribadi","Diskriminasi","Kerahasiaan tanpa dasar"],a:0,e:"UU 20/2023 memuat asas penyelenggaraan kebijakan dan manajemen ASN, termasuk kepastian hukum."},
+{m:"TPU",t:"Pelayanan Publik",q:"Petugas wajib memberikan informasi prosedur layanan secara ...",o:["Jelas dan mudah dipahami","Berubah-ubah","Hanya secara lisan tanpa kepastian","Terbatas untuk kenalan"],a:0,e:"Informasi prosedur merupakan bagian dari standar dan keterbukaan pelayanan."},
+{m:"TPU",t:"Perkantoran",q:"Notula rapat sebaiknya memuat ...",o:["Pokok pembahasan, keputusan, dan tindak lanjut","Pendapat pribadi notulis saja","Informasi yang tidak dibahas","Daftar belanja pribadi"],a:0,e:"Notula mencatat pembahasan dan hasil rapat sebagai dokumentasi tindak lanjut."},
+{m:"TPU",t:"Tata Kelola Pemerintahan",q:"Partisipasi masyarakat dalam pemerintahan dapat diwujudkan melalui ...",o:["Penyampaian masukan dan pengawasan sesuai ketentuan","Penyebaran data pribadi orang lain","Pengabaian proses konsultasi","Pengambilalihan kewenangan pejabat"],a:0,e:"Partisipasi publik mendukung pemerintahan yang responsif dan akuntabel."},
+{m:"TPU",t:"Literasi Digital",q:"Dokumen yang memuat data pribadi sebaiknya dibagikan dengan ...",o:["Pembatasan akses sesuai kebutuhan dan kewenangan","Tautan publik tanpa batas","Akun anonim","Perangkat umum"],a:0,e:"Pembatasan akses merupakan langkah perlindungan data pribadi."},
+{m:"TSI",t:"SOTK",q:"Struktur organisasi yang baik menggambarkan ...",o:["Hubungan fungsi, tanggung jawab, dan kewenangan","Daftar hobi pegawai","Informasi keluarga pejabat","Jadwal pribadi"],a:0,e:"Struktur organisasi menunjukkan susunan unit dan hubungan kerja."},
+{m:"TSI",t:"Renstra Instansi",q:"Analisis SWOT mencakup ...",o:["Kekuatan, kelemahan, peluang, dan ancaman","Sasaran, waktu, output, dan wilayah","Standar, wewenang, tugas, dan organisasi","Sumber, biaya, hasil, dan waktu"],a:0,e:"SWOT digunakan untuk menganalisis faktor internal dan eksternal."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"RPJMD harus memperhatikan dokumen perencanaan ...",o:["Pembangunan nasional dan daerah yang terkait","Rencana pribadi pegawai","Agenda organisasi nonpemerintah saja","Daftar inventaris kantor"],a:0,e:"Perencanaan daerah perlu diselaraskan dengan kerangka perencanaan nasional dan daerah."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"Indikator output mengukur ...",o:["Keluaran langsung dari kegiatan","Dampak jangka panjang saja","Jumlah pegawai pensiun","Pendapat pribadi"],a:0,e:"Output adalah barang atau jasa yang dihasilkan dari suatu kegiatan."},
+{m:"TSI",t:"Renstra Instansi",q:"Evaluasi Renstra dilakukan untuk menilai ...",o:["Kemajuan pencapaian tujuan dan sasaran strategis","Jumlah acara seremonial","Popularitas nama unit","Warna dokumen"],a:0,e:"Evaluasi menilai pencapaian target dan menjadi dasar perbaikan strategi."},
+{m:"TPM",t:"Manajemen",q:"Rentang kendali (span of control) merujuk pada ...",o:["Jumlah bawahan yang secara efektif dapat dikelola seorang atasan","Lama waktu rapat","Jumlah kantor cabang","Besaran anggaran perjalanan"],a:0,e:"Rentang kendali berkaitan dengan jumlah bawahan yang berada dalam supervisi seorang pimpinan."},
+{m:"TPM",t:"Manajemen",q:"Koordinasi diperlukan terutama ketika ...",o:["Beberapa unit memiliki tugas yang saling berkaitan","Setiap orang bekerja tanpa tujuan","Tidak ada pembagian kerja","Semua keputusan bersifat pribadi"],a:0,e:"Koordinasi menyatukan kegiatan unit yang saling bergantung."},
+{m:"TPM",t:"Manajemen",q:"Pendelegasian tugas yang efektif harus memperhatikan ...",o:["Kompetensi penerima tugas dan kejelasan hasil yang diharapkan","Kedekatan pribadi semata","Tidak adanya batas waktu","Penghapusan pelaporan"],a:0,e:"Delegasi mempertimbangkan kemampuan, wewenang, dan hasil yang harus dicapai."},
+{m:"TPM",t:"Manajemen",q:"Perbaikan berkelanjutan dalam organisasi berarti ...",o:["Melakukan peningkatan proses secara terus-menerus berdasarkan evaluasi","Mempertahankan kesalahan","Menghindari umpan balik","Menghentikan inovasi"],a:0,e:"Perbaikan berkelanjutan menggunakan evaluasi dan pembelajaran untuk meningkatkan proses."},
+{m:"TPM",t:"Manajemen",q:"Indikator outcome mengukur ...",o:["Manfaat atau perubahan yang dihasilkan dari suatu program","Jumlah rapat yang diselenggarakan","Banyaknya dokumen dicetak","Jumlah alat tulis yang dibeli"],a:0,e:"Outcome menggambarkan manfaat atau perubahan yang timbul dari output."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Penyusutan arsip dilakukan berdasarkan ...",o:["Jadwal Retensi Arsip dan ketentuan kearsipan","Keinginan pemegang arsip","Usia pegawai","Kapasitas lemari saja"],a:0,e:"Penyusutan arsip harus mengikuti JRA dan ketentuan peraturan kearsipan."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Surat tugas kedinasan umumnya memuat ...",o:["Dasar, maksud, pelaksana, dan waktu penugasan","Kata sandi akun pegawai","Informasi pribadi yang tidak terkait","Daftar belanja rumah tangga"],a:0,e:"Surat tugas menjelaskan penugasan dan unsur pelaksanaannya."},
+{m:"TKT",t:"Pelayanan Publik",q:"Jika terjadi keterlambatan layanan, petugas sebaiknya ...",o:["Memberi penjelasan dan informasi tindak lanjut","Menyembunyikan status permohonan","Meminta biaya tambahan tanpa dasar","Menghapus nomor registrasi"],a:0,e:"Komunikasi terbuka menjaga kepastian informasi kepada pengguna layanan."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Pengambilan keputusan yang akuntabel harus didukung oleh ...",o:["Dasar, proses, dan dokumentasi yang dapat dipertanggungjawabkan","Instruksi lisan tanpa alasan","Kepentingan pribadi","Informasi yang sengaja disembunyikan"],a:0,e:"Akuntabilitas membutuhkan dasar keputusan dan dokumentasi yang memadai."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Netralitas ASN terutama berarti ...",o:["Tidak berpihak dari pengaruh dan kepentingan politik praktis","Mendukung semua calon","Menggunakan jabatan untuk kampanye","Membeda-bedakan pelayanan"],a:0,e:"Netralitas menjaga profesionalitas ASN dan pelayanan yang adil."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct sentence.",o:["She works in the office.","She work in the office.","She working in the office.","She are work in the office."],a:0,e:"Subjek she pada simple present menggunakan kata kerja dengan akhiran -s."},
+{m:"TKP",t:"Bahasa Inggris",q:"The word 'deadline' means ...",o:["Batas waktu","Ruang rapat","Surat masuk","Laporan tahunan"],a:0,e:"Deadline berarti batas akhir waktu penyelesaian."},
+{m:"TKP",t:"Literasi Digital",q:"Jika menemukan perangkat USB tidak dikenal di kantor, sebaiknya ...",o:["Tidak langsung menghubungkannya dan melaporkan kepada petugas TI","Mencolokkannya ke komputer utama","Menyalin semua berkas","Membagikannya kepada rekan"],a:0,e:"USB tidak dikenal dapat membawa malware; laporkan sesuai prosedur keamanan."},
+{m:"TKP",t:"Literasi Digital",q:"Enkripsi data bertujuan untuk ...",o:["Melindungi kerahasiaan informasi agar tidak mudah dibaca pihak tak berwenang","Mempercepat pencetakan","Menghapus kebutuhan kata sandi","Membuat data tersedia untuk umum"],a:0,e:"Enkripsi mengubah data menjadi bentuk yang hanya dapat dibaca dengan kunci yang sesuai."},
+{m:"TKP",t:"Literasi Digital",q:"Saat bekerja dari jarak jauh, dokumen kedinasan sebaiknya disimpan ...",o:["Pada sistem resmi yang telah disetujui instansi","Di penyimpanan publik pribadi","Pada perangkat orang lain tanpa izin","Di tautan terbuka"],a:0,e:"Gunakan sistem penyimpanan resmi dan sesuai kebijakan keamanan instansi."}
+,
+{m:"TWK",t:"Pancasila",q:"Mengembangkan sikap toleransi antarumat beragama merupakan wujud pengamalan ...",o:["Sila pertama","Sila kedua","Sila ketiga","Sila kelima"],a:0,e:"Toleransi beragama selaras dengan nilai Ketuhanan Yang Maha Esa."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 30 UUD 1945 mengatur hak dan kewajiban warga negara dalam bidang ...",o:["Pertahanan dan keamanan negara","Pendidikan","Perekonomian","Kebudayaan"],a:0,e:"Pasal 30 mengatur usaha pertahanan dan keamanan negara."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Semboyan Bhinneka Tunggal Ika berasal dari karya sastra ...",o:["Kakawin Sutasoma","Negarakertagama","Pararaton","Arjunawiwaha"],a:0,e:"Bhinneka Tunggal Ika terdapat dalam Kakawin Sutasoma karya Mpu Tantular."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Kalimat efektif adalah kalimat yang ...",o:["Jelas, hemat, dan sesuai kaidah","Panjang dan berulang","Memiliki banyak kata mubazir","Tidak memiliki subjek atau predikat"],a:0,e:"Kalimat efektif menyampaikan gagasan secara jelas dan hemat."},
+{m:"TWK",t:"UUD 1945",q:"Lambang negara Indonesia adalah ...",o:["Garuda Pancasila","Burung Cenderawasih","Elang Jawa","Rajawali Merah"],a:0,e:"Pasal 36A UUD 1945 menetapkan Garuda Pancasila sebagai lambang negara."},
+{m:"TPU",t:"Perencanaan Pembangunan Nasional",q:"RKP merupakan dokumen perencanaan pembangunan nasional untuk periode ...",o:["Satu tahun","Lima tahun","Sepuluh tahun","Dua puluh tahun"],a:0,e:"RKP adalah rencana pembangunan nasional tahunan."},
+{m:"TPU",t:"Kepegawaian",q:"Pengembangan kompetensi ASN dilakukan untuk ...",o:["Meningkatkan pengetahuan, keterampilan, dan sikap kerja","Menghindari evaluasi","Mengurangi kualitas pelayanan","Menggantikan aturan disiplin"],a:0,e:"Pengembangan kompetensi mendukung profesionalitas dan kinerja ASN."},
+{m:"TPU",t:"Pelayanan Publik",q:"Pelayanan yang inklusif memperhatikan ...",o:["Kebutuhan kelompok masyarakat yang beragam termasuk kelompok rentan","Kepentingan petugas saja","Pemohon yang dikenal","Kelompok tertentu saja"],a:0,e:"Pelayanan publik harus memperhatikan akses dan kebutuhan masyarakat secara adil."},
+{m:"TPU",t:"Perkantoran",q:"Tujuan pemberian nomor pada surat keluar adalah ...",o:["Memudahkan identifikasi dan penelusuran surat","Menentukan gaji pegawai","Menggantikan tanda tangan","Menghapus arsip"],a:0,e:"Penomoran menjadi bagian pencatatan dan pengendalian naskah dinas."},
+{m:"TPU",t:"Kebijakan Publik",q:"Implementasi kebijakan merupakan tahap ...",o:["Pelaksanaan kebijakan untuk mencapai tujuan","Penentuan judul dokumen saja","Penghapusan tujuan","Penyimpanan arsip pribadi"],a:0,e:"Implementasi menerjemahkan keputusan kebijakan menjadi tindakan."},
+{m:"TSI",t:"SOTK",q:"Penetapan tugas dan fungsi unit organisasi diperlukan agar ...",o:["Tidak terjadi duplikasi dan kekosongan pelaksanaan tugas","Semua unit mengerjakan hal yang sama","Tanggung jawab tidak jelas","Koordinasi dihilangkan"],a:0,e:"Kejelasan tugas dan fungsi mendorong efektivitas organisasi."},
+{m:"TSI",t:"Renstra Instansi",q:"Visi dalam dokumen strategis menggambarkan ...",o:["Kondisi ideal yang ingin diwujudkan","Daftar kegiatan harian","Rincian belanja bulanan","Jadwal piket"],a:0,e:"Visi menggambarkan keadaan masa depan yang ingin dicapai."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"RKPD menjadi pedoman dalam penyusunan ...",o:["Rencana kerja dan penganggaran tahunan daerah","Rencana pribadi pegawai","Struktur kementerian","Jadwal cuti"],a:0,e:"RKPD menjadi dasar penyusunan rencana kerja dan proses penganggaran tahunan daerah."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"Sinkronisasi program pusat dan daerah bertujuan ...",o:["Meningkatkan keterpaduan pencapaian sasaran pembangunan","Memperbanyak program yang tumpang tindih","Menghilangkan koordinasi","Memisahkan target pembangunan"],a:0,e:"Sinkronisasi membantu memastikan program saling mendukung."},
+{m:"TSI",t:"Renstra Instansi",q:"Target kinerja sebaiknya memiliki ...",o:["Ukuran, satuan, dan periode pencapaian yang jelas","Rumusan yang tidak dapat diukur","Tujuan yang berubah tanpa evaluasi","Data tanpa sumber"],a:0,e:"Target yang jelas memudahkan pemantauan dan evaluasi."},
+{m:"TPM",t:"Manajemen",q:"Produktivitas kerja dapat ditingkatkan melalui ...",o:["Perbaikan proses dan pemanfaatan sumber daya secara tepat","Penambahan tahapan tanpa tujuan","Pengulangan pekerjaan","Pengabaian kompetensi"],a:0,e:"Produktivitas berkaitan dengan hasil dibandingkan sumber daya yang digunakan."},
+{m:"TPM",t:"Manajemen",q:"Umpan balik kinerja yang baik seharusnya ...",o:["Spesifik, objektif, dan berorientasi perbaikan","Menyerang pribadi","Tidak didukung contoh","Diberikan hanya saat menghukum"],a:0,e:"Umpan balik konstruktif menjelaskan perilaku atau hasil dan langkah perbaikan."},
+{m:"TPM",t:"Manajemen",q:"Tujuan utama pengorganisasian sumber daya adalah ...",o:["Memastikan sumber daya mendukung pencapaian tujuan","Menghabiskan anggaran","Membuat struktur semakin rumit","Menghindari koordinasi"],a:0,e:"Pengorganisasian menyelaraskan manusia, tugas, dan sumber daya."},
+{m:"TPM",t:"Manajemen",q:"Rencana kontinjensi disusun untuk ...",o:["Mengantisipasi keadaan tidak terduga","Menggantikan seluruh rencana kerja","Menghapus risiko","Menunda keputusan"],a:0,e:"Rencana kontinjensi menyiapkan respons terhadap kondisi yang mungkin terjadi."},
+{m:"TPM",t:"Manajemen",q:"Delegasi yang berhasil tetap memerlukan ...",o:["Pemantauan hasil dan dukungan yang memadai","Pelepasan semua tanggung jawab","Larangan komunikasi","Ketidakjelasan wewenang"],a:0,e:"Pimpinan tetap memastikan hasil dan menyediakan dukungan yang diperlukan."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Arsip inaktif adalah arsip yang ...",o:["Frekuensi penggunaannya telah menurun","Selalu digunakan setiap hari","Belum pernah diciptakan","Tidak memiliki nilai guna"],a:0,e:"Arsip inaktif memiliki frekuensi penggunaan yang telah menurun."},
+{m:"TKT",t:"Perkantoran - Tata Naskah Dinas",q:"Tanda tangan elektronik yang sah digunakan untuk ...",o:["Menjamin autentikasi dan integritas dokumen elektronik sesuai ketentuan","Menghapus identitas penandatangan","Membuat dokumen anonim","Mengganti seluruh prosedur pemeriksaan"],a:0,e:"Tanda tangan elektronik memiliki fungsi autentikasi dan integritas sesuai peraturan."},
+{m:"TKT",t:"Pelayanan Publik",q:"Jika standar pelayanan tidak dipenuhi, masyarakat berhak ...",o:["Menyampaikan pengaduan melalui saluran yang tersedia","Mengubah data layanan sendiri","Memberi imbalan agar dipercepat","Mengambil dokumen milik petugas"],a:0,e:"Masyarakat dapat menyampaikan pengaduan atas penyelenggaraan pelayanan."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Penilaian kinerja pegawai harus dilakukan secara ...",o:["Objektif, terukur, akuntabel, partisipatif, dan transparan","Berdasarkan kedekatan pribadi","Tanpa indikator","Rahasia dari pegawai tanpa mekanisme"],a:0,e:"Penilaian kinerja ASN berpedoman pada ketentuan manajemen kinerja yang berlaku."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Penerapan manajemen risiko harus terintegrasi dengan ...",o:["Pencapaian tujuan dan proses pengambilan keputusan","Kegiatan pribadi pegawai","Penghapusan pengawasan","Promosi tanpa kriteria"],a:0,e:"Manajemen risiko menjadi bagian dari tata kelola dan pencapaian tujuan organisasi."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct form: 'They ___ the report every month.'",o:["Prepare","Prepares","Preparing","Prepared yesterday"],a:0,e:"Subjek they menggunakan bentuk dasar prepare dalam simple present."},
+{m:"TKP",t:"Bahasa Inggris",q:"The phrase 'in accordance with' means ...",o:["Sesuai dengan","Bertentangan dengan","Jauh dari","Terlepas dari"],a:0,e:"In accordance with berarti sesuai dengan."},
+{m:"TKP",t:"Literasi Digital",q:"Menggunakan perangkat lunak resmi dan berlisensi membantu ...",o:["Mengurangi risiko keamanan dan pelanggaran lisensi","Memastikan perangkat selalu bebas gangguan","Menghapus kebutuhan pembaruan","Membuka seluruh data"],a:0,e:"Perangkat lunak resmi mengurangi risiko malware dan masalah kepatuhan lisensi."},
+{m:"TKP",t:"Literasi Digital",q:"Jika akun kedinasan menunjukkan aktivitas masuk yang tidak dikenal, segera ...",o:["Amankan akun dan laporkan kepada pengelola TI","Abaikan pemberitahuan","Bagikan kode OTP","Hapus semua bukti tanpa laporan"],a:0,e:"Aktivitas tidak dikenal perlu ditangani segera melalui prosedur keamanan akun."},
+{m:"TKP",t:"Literasi Digital",q:"Metadata pada dokumen digital dapat berisi ...",o:["Informasi pembuat, waktu, dan riwayat dokumen","Hanya warna layar","Kapasitas baterai","Nomor telepon semua pembaca"],a:0,e:"Metadata dapat memuat informasi tentang asal dan pengelolaan berkas."}
+,
+{m:"TWK",t:"Pancasila",q:"Sikap rela berkorban untuk kepentingan bangsa dan negara sejalan dengan nilai ...",o:["Persatuan Indonesia","Individualisme","Kesenjangan sosial","Diskriminasi"],a:0,e:"Nilai persatuan mencakup rasa cinta tanah air dan kesediaan mengutamakan kepentingan bangsa."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 28D ayat (1) UUD 1945 menjamin ...",o:["Pengakuan, jaminan, perlindungan, dan kepastian hukum yang adil","Hak untuk menguasai jabatan","Kebebasan melanggar hukum","Kekebalan dari semua aturan"],a:0,e:"Pasal 28D ayat (1) menjamin kepastian hukum yang adil dan perlakuan yang sama di hadapan hukum."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Hari Pahlawan diperingati setiap tanggal ...",o:["10 November","17 Agustus","20 Mei","28 Oktober"],a:0,e:"Tanggal 10 November diperingati untuk mengenang perjuangan di Surabaya pada 1945."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Bentuk kata baku yang tepat adalah ...",o:["Aktivitas","Aktifitas","Aktipitas","Aktifvitas"],a:0,e:"Bentuk baku menurut KBBI adalah aktivitas."},
+{m:"TWK",t:"Pancasila",q:"Mengutamakan musyawarah dan tidak memaksakan kehendak merupakan nilai ...",o:["Kerakyatan","Ketuhanan","Kemanusiaan","Keadilan sosial"],a:0,e:"Nilai permusyawaratan merupakan inti sila keempat Pancasila."},
+{m:"TPU",t:"Kepegawaian",q:"Sistem merit dalam manajemen ASN menekankan ...",o:["Kualifikasi, kompetensi, dan kinerja secara adil","Hubungan keluarga","Senioritas semata","Kepentingan politik"],a:0,e:"Sistem merit mengelola ASN berdasarkan kualifikasi, kompetensi, dan kinerja secara adil."},
+{m:"TPU",t:"Pelayanan Publik",q:"Pelayanan prima berorientasi pada ...",o:["Kebutuhan dan kepuasan pengguna layanan sesuai standar","Kenyamanan petugas saja","Prosedur yang dirahasiakan","Pemberian layanan berdasarkan kedekatan"],a:0,e:"Pelayanan prima berfokus pada kualitas layanan dan kebutuhan masyarakat."},
+{m:"TPU",t:"Perkantoran",q:"Disposisi pimpinan atas surat masuk sebaiknya ...",o:["Jelas mengenai arahan dan unit/pejabat tindak lanjut","Tidak perlu dicatat","Mengubah substansi surat","Diberikan kepada pihak yang tidak terkait"],a:0,e:"Disposisi mengarahkan penanganan surat kepada pihak yang bertanggung jawab."},
+{m:"TPU",t:"Tata Kelola Pemerintahan",q:"Pemerintahan yang responsif berarti ...",o:["Menanggapi kebutuhan dan aspirasi masyarakat secara tepat","Menghindari masukan masyarakat","Menyembunyikan informasi layanan","Menunda semua keputusan"],a:0,e:"Responsivitas menunjukkan kemampuan pemerintah menanggapi kebutuhan masyarakat."},
+{m:"TPU",t:"Literasi Digital",q:"OTP (one-time password) seharusnya ...",o:["Dirahasiakan dan tidak diberikan kepada siapa pun","Dikirim ke grup kerja","Ditulis pada media sosial","Diberikan kepada penelepon tidak dikenal"],a:0,e:"OTP adalah faktor autentikasi yang harus dijaga kerahasiaannya."},
+{m:"TSI",t:"Renstra Instansi",q:"Tujuan strategis organisasi harus konsisten dengan ...",o:["Mandat, tugas, fungsi, dan arah kebijakan","Keinginan individu","Tren sesaat tanpa kajian","Kegiatan seremonial"],a:0,e:"Tujuan strategis harus berangkat dari mandat organisasi dan arah kebijakan."},
+{m:"TSI",t:"SOTK",q:"Koordinasi lintas unit menjadi penting ketika ...",o:["Pencapaian hasil membutuhkan kontribusi beberapa unit","Tugas sepenuhnya individual","Tidak ada keterkaitan proses","Setiap unit memiliki sasaran yang bertentangan"],a:0,e:"Koordinasi lintas unit mengintegrasikan proses yang saling terkait."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"Evaluasi program pembangunan perlu menggunakan ...",o:["Indikator dan data capaian yang dapat diverifikasi","Perkiraan tanpa sumber","Pendapat satu orang saja","Jumlah rapat sebagai satu-satunya ukuran"],a:0,e:"Evaluasi yang baik didukung indikator dan data yang dapat diuji."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"RPJMD disusun dengan memperhatikan visi dan misi ...",o:["Kepala daerah terpilih","Kepala desa saja","Pimpinan perusahaan swasta","Ketua organisasi profesi"],a:0,e:"RPJMD merupakan penjabaran visi, misi, dan program kepala daerah."},
+{m:"TSI",t:"Renstra Instansi",q:"Program dalam Renstra merupakan instrumen untuk ...",o:["Mendukung pencapaian tujuan dan sasaran strategis","Menggantikan seluruh tugas organisasi","Membuat indikator tidak relevan","Menghindari pengukuran kinerja"],a:0,e:"Program dirancang untuk menggerakkan pencapaian sasaran strategis."},
+{m:"TPM",t:"Manajemen",q:"Analisis akar masalah digunakan untuk ...",o:["Menemukan penyebab mendasar suatu permasalahan","Mencari pihak untuk disalahkan","Menghapus bukti masalah","Menunda perbaikan"],a:0,e:"Analisis akar masalah membantu memilih tindakan korektif yang tepat."},
+{m:"TPM",t:"Manajemen",q:"Perencanaan kerja yang realistis harus mempertimbangkan ...",o:["Tujuan, waktu, sumber daya, dan risiko","Harapan tanpa sumber daya","Jumlah rapat saja","Keinginan pihak luar saja"],a:0,e:"Rencana realistis mempertimbangkan kapasitas dan risiko pelaksanaan."},
+{m:"TPM",t:"Manajemen",q:"Kinerja tim yang baik biasanya didukung oleh ...",o:["Tujuan bersama dan pembagian peran yang jelas","Persaingan internal tanpa batas","Informasi yang tertutup","Tanggung jawab yang saling dilempar"],a:0,e:"Tujuan dan peran yang jelas membantu tim bekerja terarah."},
+{m:"TPM",t:"Manajemen",q:"Dalam pengendalian pekerjaan, deviasi adalah ...",o:["Perbedaan antara realisasi dan rencana/standar","Daftar hadir pegawai","Nama kegiatan","Anggaran yang belum disusun"],a:0,e:"Deviasi menunjukkan selisih pelaksanaan terhadap target atau standar."},
+{m:"TPM",t:"Manajemen",q:"Keputusan yang tepat waktu perlu tetap mempertimbangkan ...",o:["Kecukupan informasi dan konsekuensi keputusan","Kecepatan tanpa pertimbangan","Tekanan pribadi","Rumor yang beredar"],a:0,e:"Keputusan perlu menyeimbangkan ketepatan waktu dengan informasi dan risiko."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Alih media arsip perlu memperhatikan ...",o:["Keautentikan, keutuhan, dan aksesibilitas arsip","Pengubahan isi tanpa catatan","Penghapusan arsip sumber tanpa prosedur","Penyebaran tanpa kewenangan"],a:0,e:"Pengelolaan arsip elektronik harus menjaga autentisitas, keutuhan, dan akses."},
+{m:"TKT",t:"Perkantoran - Tata Naskah Dinas",q:"Kop surat pada naskah dinas berfungsi untuk ...",o:["Menunjukkan identitas instansi penerbit","Menentukan nilai anggaran","Menggantikan nomor surat","Menjadi tanda tangan"],a:0,e:"Kop surat memuat identitas resmi instansi atau unit penerbit."},
+{m:"TKT",t:"Pelayanan Publik",q:"Penyandang disabilitas dalam mengakses layanan publik perlu ...",o:["Akomodasi yang layak dan aksesibilitas","Dipaksa mengikuti cara yang sama tanpa penyesuaian","Dibatasi tanpa alasan","Diminta datang dengan biaya tambahan"],a:0,e:"Pelayanan harus memperhatikan aksesibilitas dan kebutuhan kelompok rentan."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Pelanggaran disiplin PNS ditangani berdasarkan ...",o:["Ketentuan peraturan perundang-undangan dan prosedur yang berlaku","Pendapat pribadi rekan kerja","Komentar media sosial","Keputusan informal tanpa pemeriksaan"],a:0,e:"Penegakan disiplin harus mengikuti ketentuan dan prosedur resmi."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Keterbukaan informasi publik dilaksanakan dengan tetap memperhatikan ...",o:["Informasi yang dikecualikan menurut ketentuan hukum","Penyebaran seluruh data pribadi","Penghapusan semua dokumen","Larangan seluruh akses masyarakat"],a:0,e:"Keterbukaan informasi memiliki batas untuk informasi yang dikecualikan berdasarkan UU KIP."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct preposition: 'The report was submitted ___ Monday.'",o:["On","At","In","By of"],a:0,e:"On digunakan untuk menyebut hari tertentu."},
+{m:"TKP",t:"Bahasa Inggris",q:"The word 'requirement' means ...",o:["Persyaratan","Pengumuman","Keterlambatan","Pertemuan"],a:0,e:"Requirement berarti persyaratan atau kebutuhan yang harus dipenuhi."},
+{m:"TKP",t:"Literasi Digital",q:"Mengapa file penting perlu diberi hak akses terbatas?",o:["Untuk mencegah perubahan atau pembacaan oleh pihak tidak berwenang","Agar semua orang dapat mengubahnya","Untuk menghapus jejak penggunaan","Agar file tidak dapat dicadangkan"],a:0,e:"Kontrol akses melindungi kerahasiaan dan integritas dokumen."},
+{m:"TKP",t:"Literasi Digital",q:"Saat menerima lampiran email yang tidak diharapkan, tindakan aman adalah ...",o:["Verifikasi pengirim dan pindai lampiran sebelum dibuka sesuai kebijakan TI","Langsung membuka dan menjalankan","Meneruskan ke semua kontak","Menonaktifkan antivirus"],a:0,e:"Lampiran tak terduga dapat membawa malware sehingga perlu diverifikasi."},
+{m:"TKP",t:"Literasi Digital",q:"Penyimpanan kata sandi yang lebih aman dapat menggunakan ...",o:["Password manager tepercaya yang disetujui","Dokumen publik tanpa sandi","Pesan grup","Catatan di meja kerja"],a:0,e:"Password manager tepercaya membantu membuat dan menyimpan kata sandi unik dengan aman."}
+,
+{m:"TWK",t:"Pancasila",q:"Menghormati perbedaan suku, agama, dan budaya memperkuat ...",o:["Persatuan bangsa","Perpecahan sosial","Diskriminasi","Konflik kepentingan"],a:0,e:"Bhinneka Tunggal Ika dan nilai persatuan mendorong penghormatan terhadap keberagaman."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 33 UUD 1945 terutama mengatur tentang ...",o:["Perekonomian nasional","Pertahanan negara","Pendidikan dasar","Kekuasaan kehakiman"],a:0,e:"Pasal 33 mengatur perekonomian nasional dan kesejahteraan sosial."},
+{m:"TWK",t:"UUD 1945",q:"Setiap warga negara memiliki kedudukan yang sama di hadapan ...",o:["Hukum dan pemerintahan","Organisasi swasta","Kelompok sosial","Media massa"],a:0,e:"Prinsip persamaan di hadapan hukum tercantum dalam Pasal 27 ayat (1)."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Kongres Pemuda II berlangsung pada tahun ...",o:["1928","1908","1945","1955"],a:0,e:"Kongres Pemuda II diselenggarakan pada 1928."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Kata baku yang tepat adalah ...",o:["Izin","Ijin","Idzin","Izzin"],a:0,e:"Bentuk baku dalam bahasa Indonesia adalah izin."},
+{m:"TPU",t:"Kepegawaian",q:"Perilaku akuntabel ASN ditunjukkan dengan ...",o:["Menggunakan sumber daya negara secara bertanggung jawab","Menggunakan fasilitas kantor untuk kepentingan pribadi","Menghindari pelaporan","Menyembunyikan konflik kepentingan"],a:0,e:"Akuntabilitas menuntut tanggung jawab atas penggunaan sumber daya dan hasil kerja."},
+{m:"TPU",t:"Pelayanan Publik",q:"Waktu penyelesaian layanan harus ...",o:["Ditetapkan dan diinformasikan dalam standar pelayanan","Dirahasiakan","Ditentukan sepihak setiap hari","Dibedakan tanpa dasar"],a:0,e:"Jangka waktu penyelesaian merupakan komponen standar pelayanan."},
+{m:"TPU",t:"Perkantoran",q:"Arsip surat keluar perlu disimpan agar ...",o:["Menjadi bukti komunikasi dan memudahkan penelusuran","Dapat diubah tanpa catatan","Tidak ditemukan kembali","Menggantikan semua laporan"],a:0,e:"Arsip surat keluar menjadi bukti dan sumber informasi kegiatan kedinasan."},
+{m:"TPU",t:"Kebijakan Publik",q:"Pemantauan implementasi kebijakan dilakukan untuk ...",o:["Mengetahui kemajuan dan hambatan pelaksanaan","Menghapus target","Menentukan popularitas pelaksana","Menghindari evaluasi"],a:0,e:"Monitoring membantu melihat kemajuan dan masalah selama pelaksanaan."},
+{m:"TPU",t:"Literasi Digital",q:"Pembaruan antivirus atau endpoint protection berguna untuk ...",o:["Mendeteksi ancaman baru sesuai pembaruan definisi dan fitur","Menghapus kebutuhan backup","Membagikan data","Menonaktifkan firewall"],a:0,e:"Pembaruan meningkatkan kemampuan perlindungan terhadap ancaman terbaru."},
+{m:"TSI",t:"SOTK",q:"Perubahan struktur organisasi sebaiknya didasarkan pada ...",o:["Analisis kebutuhan, beban kerja, dan mandat organisasi","Preferensi pribadi","Tren desain semata","Jumlah ruangan kosong"],a:0,e:"Penataan organisasi perlu didasarkan pada kebutuhan dan analisis organisasi."},
+{m:"TSI",t:"Renstra Instansi",q:"Pohon kinerja membantu menggambarkan ...",o:["Hubungan sebab-akibat antarhasil dan sasaran","Daftar pegawai berdasarkan usia","Jadwal rapat mingguan","Rincian inventaris"],a:0,e:"Pohon kinerja menggambarkan keterkaitan logis hasil dan sasaran."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Perangkat daerah menyusun Renstra dengan mengacu pada ...",o:["RPJMD dan tugas fungsinya","Rencana kerja perusahaan swasta","Agenda pribadi pimpinan","Daftar aset daerah saja"],a:0,e:"Renstra perangkat daerah menjabarkan RPJMD sesuai tugas dan fungsi perangkat daerah."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"Indikator outcome berbeda dari output karena outcome mengukur ...",o:["Manfaat atau perubahan yang dirasakan","Jumlah produk langsung saja","Jumlah rapat","Jumlah pegawai"],a:0,e:"Outcome mengukur perubahan atau manfaat yang muncul setelah output dimanfaatkan."},
+{m:"TSI",t:"Renstra Instansi",q:"Baseline indikator kinerja adalah ...",o:["Nilai awal sebagai titik pembanding pengukuran","Nilai akhir yang belum ditetapkan","Daftar kegiatan","Satuan anggaran"],a:0,e:"Baseline merupakan kondisi awal untuk mengukur kemajuan pencapaian target."},
+{m:"TPM",t:"Manajemen",q:"Pengelolaan perubahan yang baik memerlukan ...",o:["Komunikasi, keterlibatan, dan dukungan bagi pihak terdampak","Instruksi mendadak tanpa penjelasan","Pengabaian masukan","Penghapusan evaluasi"],a:0,e:"Manajemen perubahan membutuhkan komunikasi dan keterlibatan pihak terkait."},
+{m:"TPM",t:"Manajemen",q:"Kualitas pelayanan internal dapat ditingkatkan dengan ...",o:["Standar proses dan evaluasi umpan balik","Membiarkan proses berbeda tanpa alasan","Menghapus pembagian peran","Menunda penyelesaian masalah"],a:0,e:"Standar dan umpan balik membantu memperbaiki proses pelayanan internal."},
+{m:"TPM",t:"Manajemen",q:"Risiko dengan dampak tinggi dan kemungkinan besar terjadi sebaiknya ...",o:["Menjadi prioritas penanganan","Diabaikan","Dihapus dari daftar risiko","Dibahas setelah program selesai"],a:0,e:"Prioritas risiko mempertimbangkan tingkat kemungkinan dan dampaknya."},
+{m:"TPM",t:"Manajemen",q:"Tujuan rapat koordinasi adalah ...",o:["Menyelaraskan pelaksanaan tugas dan menyelesaikan hambatan lintas unit","Menggantikan seluruh pekerjaan","Menambah agenda tanpa hasil","Menghindari komunikasi"],a:0,e:"Rapat koordinasi menyelaraskan tugas dan tindak lanjut antarunit."},
+{m:"TPM",t:"Manajemen",q:"Dokumentasi keputusan manajerial diperlukan agar ...",o:["Dasar dan tindak lanjut keputusan dapat ditelusuri","Keputusan dapat diubah tanpa jejak","Tidak ada akuntabilitas","Informasi hilang"],a:0,e:"Dokumentasi mendukung transparansi, konsistensi, dan akuntabilitas."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Klasifikasi arsip membantu ...",o:["Mengelompokkan arsip berdasarkan fungsi dan urusan","Mencampur semua dokumen","Menghapus konteks arsip","Menyulitkan pencarian"],a:0,e:"Klasifikasi memudahkan pengelolaan dan temu kembali arsip."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Daftar hadir rapat merupakan dokumen untuk ...",o:["Mencatat kehadiran peserta","Menetapkan anggaran tahunan","Menggantikan notula","Mencatat surat keluar"],a:0,e:"Daftar hadir menjadi bukti keikutsertaan peserta rapat."},
+{m:"TKT",t:"Pelayanan Publik",q:"Petugas tidak boleh meminta imbalan di luar ketentuan karena ...",o:["Bertentangan dengan integritas dan ketentuan pelayanan","Mempercepat semua layanan","Merupakan standar umum","Diperbolehkan jika tidak dicatat"],a:0,e:"Pungutan di luar ketentuan melanggar prinsip pelayanan dan integritas."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Pengawasan internal yang efektif sebaiknya ...",o:["Berbasis risiko dan dilakukan secara sistematis","Hanya dilakukan setelah masalah membesar","Tanpa dokumentasi","Tidak terkait tujuan organisasi"],a:0,e:"Pengawasan internal membantu memberi keyakinan atas pengendalian dan pencapaian tujuan."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Pegawai yang menggunakan fasilitas kedinasan harus ...",o:["Sesuai peruntukan dan ketentuan penggunaan","Untuk keuntungan pribadi","Dipindahtangankan tanpa izin","Tidak perlu dicatat"],a:0,e:"Fasilitas kedinasan harus digunakan secara bertanggung jawab sesuai aturan."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct sentence: 'We ___ the meeting at nine.'",o:["Start","Starts","Starting","Is start"],a:0,e:"Subjek we menggunakan kata kerja dasar start pada simple present."},
+{m:"TKP",t:"Bahasa Inggris",q:"'Please find the document attached' is commonly used to ...",o:["Memberi tahu bahwa dokumen dilampirkan","Meminta rapat dibatalkan","Menolak permohonan","Mengubah jadwal"],a:0,e:"Ungkapan tersebut memberi tahu penerima bahwa dokumen disertakan."},
+{m:"TKP",t:"Literasi Digital",q:"Saat menggunakan aplikasi berbagi dokumen, pastikan ...",o:["Izin akses hanya diberikan kepada pihak yang membutuhkan","Tautan selalu bersifat publik","Semua pengguna menjadi editor","Kata sandi dibagikan terbuka"],a:0,e:"Pengaturan izin akses mengurangi risiko kebocoran dan perubahan tidak sah."},
+{m:"TKP",t:"Literasi Digital",q:"Social engineering adalah teknik ...",o:["Memanipulasi orang agar memberikan informasi atau akses","Meningkatkan kapasitas server","Mengompresi berkas","Memperbaiki perangkat keras"],a:0,e:"Social engineering mengeksploitasi kepercayaan atau perilaku manusia."},
+{m:"TKP",t:"Literasi Digital",q:"Jika menerima pesan berisi tautan hadiah yang tidak masuk akal, sebaiknya ...",o:["Waspada, verifikasi sumber, dan jangan memasukkan data pribadi","Segera masukkan nomor identitas","Kirim ke seluruh kontak","Unduh semua lampiran"],a:0,e:"Tautan hadiah palsu sering digunakan untuk phishing atau penipuan."}
+,
+{m:"TWK",t:"Pancasila",q:"Menjaga kerukunan dalam kehidupan berbangsa merupakan penerapan nilai ...",o:["Persatuan dan toleransi","Permusuhan","Egoisme","Diskriminasi"],a:0,e:"Nilai persatuan dan penghormatan terhadap perbedaan menjaga kerukunan."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 34 UUD 1945 mengatur tanggung jawab negara terhadap ...",o:["Fakir miskin dan anak terlantar","Perusahaan swasta","Organisasi politik asing","Kegiatan perdagangan pribadi"],a:0,e:"Pasal 34 mengatur pemeliharaan fakir miskin dan anak terlantar serta sistem jaminan sosial."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Salah satu hasil penting Kongres Pemuda II adalah ...",o:["Ikrar Sumpah Pemuda","Pembentukan BPUPKI","Pengesahan UUD 1945","Pembacaan Proklamasi"],a:0,e:"Kongres Pemuda II melahirkan ikrar Sumpah Pemuda."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Penulisan singkatan yang tepat untuk 'dan lain-lain' adalah ...",o:["dll.","d.l.l","dll","d.l.l."],a:0,e:"Singkatan dan lain-lain ditulis dll. dengan tanda titik."},
+{m:"TWK",t:"UUD 1945",q:"Negara Indonesia adalah negara hukum tercantum dalam ...",o:["Pasal 1 ayat (3)","Pasal 2 ayat (1)","Pasal 5 ayat (2)","Pasal 10"],a:0,e:"Pasal 1 ayat (3) UUD 1945 menyatakan Indonesia adalah negara hukum."},
+{m:"TPU",t:"Kepegawaian",q:"Konflik kepentingan perlu diungkapkan agar ...",o:["Keputusan tetap objektif dan dapat dipercaya","Pegawai memperoleh keuntungan pribadi","Proses menjadi tertutup","Pengawasan dapat dihindari"],a:0,e:"Pengungkapan konflik kepentingan mendukung integritas dan objektivitas."},
+{m:"TPU",t:"Pelayanan Publik",q:"Kelompok rentan dalam pelayanan publik perlu memperoleh ...",o:["Kemudahan dan fasilitas sesuai kebutuhan","Penolakan otomatis","Persyaratan tambahan tanpa dasar","Pelayanan yang lebih lambat"],a:0,e:"Penyelenggara perlu memberi kemudahan dan perlakuan khusus sesuai ketentuan."},
+{m:"TPU",t:"Perkantoran",q:"Pengelolaan jadwal pimpinan yang baik membantu ...",o:["Menghindari benturan agenda dan mendukung prioritas kerja","Menghilangkan kebutuhan koordinasi","Menunda semua kegiatan","Mengabaikan undangan resmi"],a:0,e:"Pengelolaan agenda menjaga efektivitas waktu dan koordinasi."},
+{m:"TPU",t:"Kebijakan Publik",q:"Analisis pemangku kepentingan digunakan untuk ...",o:["Memahami pihak yang terdampak atau berpengaruh pada kebijakan","Menghapus konsultasi","Menentukan urutan abjad dokumen","Mengganti dasar hukum"],a:0,e:"Analisis stakeholder membantu merancang kebijakan yang mempertimbangkan kepentingan terkait."},
+{m:"TPU",t:"Literasi Digital",q:"Mencadangkan data secara berkala sebaiknya disertai ...",o:["Pengujian pemulihan data","Penyimpanan satu-satunya di komputer umum","Pembagian akses tanpa batas","Penghapusan salinan cadangan"],a:0,e:"Backup perlu diuji agar organisasi yakin data dapat dipulihkan."},
+{m:"TSI",t:"Renstra Instansi",q:"Sasaran strategis yang baik harus ...",o:["Berorientasi hasil dan dapat diukur","Berupa slogan tanpa indikator","Tidak memiliki target","Terlepas dari mandat instansi"],a:0,e:"Sasaran strategis perlu berorientasi hasil dan memiliki ukuran pencapaian."},
+{m:"TSI",t:"SOTK",q:"Analisis jabatan dan analisis beban kerja bermanfaat untuk ...",o:["Menentukan kebutuhan dan penataan pegawai","Menentukan pilihan politik","Menghapus uraian jabatan","Membuat struktur tanpa fungsi"],a:0,e:"Analisis jabatan dan beban kerja menjadi dasar penataan organisasi dan kebutuhan pegawai."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Dokumen perencanaan tahunan pemerintah daerah adalah ...",o:["RKPD","RPJPD","RPJMN","RPJPN"],a:0,e:"RKPD merupakan rencana kerja pemerintah daerah tahunan."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"RPJPN 2025–2045 merupakan rencana pembangunan nasional jangka ...",o:["Panjang","Menengah","Tahunan","Bulanan"],a:0,e:"RPJPN 2025–2045 merupakan rencana pembangunan jangka panjang nasional 20 tahun."},
+{m:"TSI",t:"Renstra Instansi",q:"Konsistensi antara sasaran, indikator, dan program penting untuk ...",o:["Menjaga logika pencapaian kinerja","Memperbanyak indikator tanpa hubungan","Menghindari evaluasi","Menghapus prioritas"],a:0,e:"Keselarasan membantu memastikan program berkontribusi pada sasaran."},
+{m:"TPM",t:"Manajemen",q:"Pemetaan proses bisnis berguna untuk ...",o:["Memahami alur kerja dan hubungan antarproses","Menentukan gaji individu","Menghapus tanggung jawab","Mengganti struktur hukum"],a:0,e:"Pemetaan proses bisnis memperjelas alur, pemilik proses, dan titik perbaikan."},
+{m:"TPM",t:"Manajemen",q:"Penggunaan indikator yang terlalu banyak dan tidak relevan dapat ...",o:["Mengaburkan fokus pengukuran kinerja","Selalu meningkatkan kualitas","Menghilangkan beban pelaporan","Menjamin semua target tercapai"],a:0,e:"Indikator perlu dipilih relevan agar pengukuran tetap fokus."},
+{m:"TPM",t:"Manajemen",q:"Keterlibatan pegawai dalam perbaikan proses dapat meningkatkan ...",o:["Rasa memiliki dan kualitas solusi","Konflik tanpa kendali","Ketidakjelasan sasaran","Pengabaian standar"],a:0,e:"Partisipasi pegawai memanfaatkan pengetahuan pelaksana dan meningkatkan komitmen."},
+{m:"TPM",t:"Manajemen",q:"Rencana kerja yang baik perlu diturunkan menjadi ...",o:["Kegiatan, penanggung jawab, jadwal, dan target","Pernyataan umum tanpa pelaksana","Daftar keinginan tanpa ukuran","Agenda pribadi"],a:0,e:"Rencana operasional perlu menjelaskan apa, siapa, kapan, dan hasil yang dituju."},
+{m:"TPM",t:"Manajemen",q:"Pengendalian mutu bertujuan untuk ...",o:["Memastikan hasil memenuhi standar yang ditetapkan","Mengurangi pemeriksaan","Menyembunyikan kesalahan","Menghapus umpan balik"],a:0,e:"Pengendalian mutu memastikan proses dan hasil sesuai standar."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Pemberkasan arsip yang konsisten memudahkan ...",o:["Penyimpanan dan penemuan kembali","Penghilangan dokumen","Penggandaan tanpa kendali","Penyebaran data pribadi"],a:0,e:"Pemberkasan sistematis mendukung temu kembali arsip secara cepat."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Surat undangan dinas sebaiknya mencantumkan ...",o:["Hari, tanggal, waktu, tempat, dan agenda","Kata sandi rapat","Data pribadi seluruh peserta","Nomor rekening pribadi"],a:0,e:"Unsur waktu, tempat, dan agenda diperlukan agar penerima dapat menghadiri kegiatan."},
+{m:"TKT",t:"Pelayanan Publik",q:"Prinsip kepastian hukum dalam pelayanan berarti ...",o:["Pelayanan dilaksanakan berdasarkan ketentuan yang jelas","Petugas dapat mengubah aturan sesuka hati","Persyaratan tidak diumumkan","Keputusan tanpa dasar"],a:0,e:"Kepastian hukum memastikan layanan memiliki dasar dan prosedur yang jelas."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"Ketidakhadiran pegawai harus ditangani dengan ...",o:["Pencatatan dan tindak lanjut sesuai ketentuan kepegawaian","Penghapusan absensi","Penggantian data tanpa bukti","Pembiaran tanpa proses"],a:0,e:"Kehadiran merupakan bagian dari disiplin dan administrasi kepegawaian."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Pengelolaan pengaduan internal yang baik harus menjaga ...",o:["Kerahasiaan pelapor sesuai ketentuan dan tindak lanjut objektif","Identitas pelapor diumumkan","Pengaduan dihapus","Tidak ada dokumentasi"],a:0,e:"Perlindungan pelapor dan tindak lanjut objektif mendukung sistem pengaduan yang dipercaya."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct phrase: 'Please let me know if you ___ any questions.'",o:["Have","Has","Having","Had been"],a:0,e:"Subjek you menggunakan have dalam simple present."},
+{m:"TKP",t:"Bahasa Inggris",q:"The word 'available' means ...",o:["Tersedia","Terlambat","Tertutup","Dibatalkan"],a:0,e:"Available berarti tersedia atau dapat digunakan."},
+{m:"TKP",t:"Literasi Digital",q:"Mengaktifkan penguncian otomatis pada perangkat membantu ...",o:["Mengurangi risiko akses saat perangkat ditinggalkan","Menghapus data cadangan","Meningkatkan spam","Membagikan akun"],a:0,e:"Penguncian otomatis melindungi perangkat ketika tidak digunakan."},
+{m:"TKP",t:"Literasi Digital",q:"Ketika menggunakan QR code dari sumber tidak dikenal, sebaiknya ...",o:["Periksa tujuan tautan sebelum membuka","Masukkan kredensial segera","Bagikan ke semua kontak","Matikan fitur keamanan"],a:0,e:"QR code dapat mengarahkan ke situs berbahaya sehingga tujuan tautan perlu diperiksa."},
+{m:"TKP",t:"Literasi Digital",q:"Hak akses 'read-only' berarti pengguna dapat ...",o:["Melihat tanpa mengubah isi","Menghapus seluruh isi","Mengubah dan membagikan akses","Mengatur administrator"],a:0,e:"Read-only memberikan hak baca tanpa izin mengedit."}
+,
+{m:"TWK",t:"Pancasila",q:"Sikap adil kepada semua warga tanpa membedakan latar belakang mencerminkan ...",o:["Kemanusiaan dan keadilan","Egoisme","Diskriminasi","Kesewenang-wenangan"],a:0,e:"Nilai kemanusiaan dan keadilan menuntut perlakuan yang bermartabat dan tidak diskriminatif."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 28F UUD 1945 menjamin hak untuk ...",o:["Berkomunikasi dan memperoleh informasi","Menghindari kewajiban hukum","Menguasai lembaga negara","Membatasi pendidikan"],a:0,e:"Pasal 28F menjamin hak berkomunikasi dan memperoleh informasi."},
+{m:"TWK",t:"Sejarah Indonesia",q:"BPUPKI dibentuk pada masa pendudukan ...",o:["Jepang","Belanda","Inggris","Portugis"],a:0,e:"BPUPKI dibentuk pada masa pendudukan Jepang untuk mempersiapkan kemerdekaan."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Bentuk baku bahasa Indonesia untuk kata yang berarti penguraian suatu pokok persoalan adalah ...",o:["Analisis","Analisa","Analise","Analisys"],a:0,e:"Bentuk baku bahasa Indonesia adalah analisis; bentuk analisa tidak baku untuk nomina tersebut."},
+{m:"TPU",t:"Perkantoran",q:"Lembar disposisi biasanya digunakan untuk ...",o:["Mencatat arahan pimpinan atas surat masuk","Menggantikan tanda terima barang","Mencatat gaji pegawai","Menyusun daftar cuti"],a:0,e:"Lembar disposisi mendokumentasikan arahan tindak lanjut atas surat masuk."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"RPJPN 2025–2045 ditetapkan melalui ...",o:["Undang-Undang Nomor 59 Tahun 2024","Undang-Undang Nomor 20 Tahun 2023","Undang-Undang Nomor 25 Tahun 2009","Peraturan Pemerintah Nomor 94 Tahun 2021"],a:0,e:"RPJPN 2025–2045 ditetapkan dengan UU Nomor 59 Tahun 2024."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Perencanaan pembangunan daerah harus disusun secara ...",o:["Terarah, terpadu, dan tanggap terhadap perubahan","Terpisah dari kebijakan nasional","Tanpa konsultasi","Tanpa indikator"],a:0,e:"Kerangka perencanaan daerah mengikuti prinsip keterpaduan dan kesinambungan."},
+{m:"TSI",t:"Renstra Instansi",q:"Indikator kinerja yang baik harus memiliki definisi operasional agar ...",o:["Pengukuran dilakukan secara konsisten","Target dapat diubah sesuka hati","Data tidak perlu diverifikasi","Hasil tidak dapat dibandingkan"],a:0,e:"Definisi operasional memperjelas cara pengukuran dan sumber data."},
+{m:"TSI",t:"SOTK",q:"Peta proses bisnis organisasi menggambarkan ...",o:["Rangkaian aktivitas yang menghasilkan keluaran bagi penerima manfaat","Daftar nomor pegawai","Susunan tempat duduk","Daftar inventaris pribadi"],a:0,e:"Peta proses bisnis menggambarkan hubungan aktivitas dan keluaran organisasi."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Perencanaan pembangunan daerah perlu memperhatikan hasil evaluasi periode sebelumnya agar ...",o:["Perbaikan dan kesinambungan program terjaga","Semua program lama diulang","Target tidak berubah meski kondisi berbeda","Data capaian diabaikan"],a:0,e:"Evaluasi periode sebelumnya menjadi masukan untuk perencanaan berikutnya."},
+{m:"TSI",t:"Renstra Instansi",q:"Indikator kinerja utama sebaiknya dipilih berdasarkan ...",o:["Keterkaitan langsung dengan sasaran strategis","Kemudahan membuat angka","Jumlah indikator sebanyak mungkin","Ketersediaan nama program saja"],a:0,e:"IKU harus mencerminkan keberhasilan sasaran strategis."},
+{m:"TPM",t:"SOTK",q:"Koordinasi dan kolaborasi organisasi dibutuhkan untuk ...",o:["Menyelesaikan sasaran yang melibatkan beberapa fungsi","Menghilangkan akuntabilitas unit","Membuat alur kerja tidak jelas","Menduplikasi seluruh pekerjaan"],a:0,e:"Kolaborasi mengintegrasikan kontribusi lintas fungsi."},
+{m:"TPM",t:"Manajemen",q:"Perencanaan strategis berbeda dari perencanaan operasional karena lebih menekankan ...",o:["Arah jangka menengah/panjang dan sasaran utama","Jadwal harian saja","Pembagian konsumsi rapat","Pengarsipan surat masuk"],a:0,e:"Perencanaan strategis menetapkan arah dan prioritas jangka menengah atau panjang."},
+{m:"TPM",t:"Manajemen",q:"Salah satu tanda proses kerja tidak efisien adalah ...",o:["Pengulangan tahapan tanpa nilai tambah","Alur yang jelas","Pembagian peran tepat","Penggunaan data yang relevan"],a:0,e:"Tahapan berulang tanpa nilai tambah dapat menjadi sumber pemborosan."},
+{m:"TPM",t:"Manajemen",q:"Rencana aksi setelah evaluasi harus mencantumkan ...",o:["Tindakan, penanggung jawab, dan batas waktu","Slogan tanpa pelaksana","Pendapat tanpa bukti","Daftar pihak yang disalahkan"],a:0,e:"Rencana aksi harus operasional dan dapat dipantau."},
+{m:"TPM",t:"Manajemen",q:"Pemberian penghargaan kinerja sebaiknya didasarkan pada ...",o:["Kriteria objektif dan hasil yang dapat dibuktikan","Kedekatan pribadi","Lama pertemanan","Pilihan tanpa alasan"],a:0,e:"Penghargaan yang adil menggunakan kriteria transparan dan objektif."},
+{m:"TPM",t:"Manajemen",q:"Dalam pengelolaan proyek, milestone adalah ...",o:["Titik capaian penting dalam jadwal proyek","Daftar hadir rapat","Biaya konsumsi","Nama anggota tim"],a:0,e:"Milestone menandai pencapaian penting selama pelaksanaan proyek."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Pemusnahan arsip harus dilakukan ...",o:["Sesuai prosedur, JRA, dan ketentuan yang berlaku","Tanpa berita acara","Berdasarkan keinginan individu","Terhadap semua arsip sekaligus"],a:0,e:"Pemusnahan arsip mengikuti prosedur dan ketentuan kearsipan."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Pencatatan surat masuk minimal membantu mengetahui ...",o:["Tanggal terima, asal, nomor, dan perihal surat","Password pengirim","Nomor rekening pribadi","Riwayat keluarga pengirim"],a:0,e:"Pencatatan surat mendukung identifikasi dan pengendalian dokumen."},
+{m:"TKT",t:"Perkantoran - Tata Naskah Dinas",q:"Nomor naskah dinas membantu ...",o:["Identifikasi dan penataan administrasi naskah","Mengubah isi naskah","Menentukan penerima manfaat","Menghapus kebutuhan arsip"],a:0,e:"Penomoran membantu identifikasi dan penelusuran naskah dinas."},
+{m:"TKT",t:"Pelayanan Publik",q:"Standar pelayanan perlu dievaluasi secara berkala untuk ...",o:["Menyesuaikan kualitas layanan dengan kebutuhan dan ketentuan","Menghilangkan kepastian layanan","Membuat prosedur semakin rumit","Membatasi hak masyarakat"],a:0,e:"Evaluasi berkala membantu menjaga relevansi dan mutu standar pelayanan."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct word: 'The staff members ___ responsible for the files.'",o:["Are","Is","Am","Be"],a:0,e:"Staff members adalah subjek jamak, sehingga menggunakan are."},
+{m:"TKP",t:"Bahasa Inggris",q:"'Further information' means ...",o:["Informasi lebih lanjut","Informasi yang salah","Informasi rahasia saja","Informasi lama"],a:0,e:"Further information berarti informasi tambahan atau lebih lanjut."},
+{m:"TKP",t:"Literasi Digital",q:"Jika harus mengirim data pribadi melalui sistem digital, pastikan ...",o:["Tujuan, dasar, dan penerima data sesuai kewenangan","Semua data dikirim tanpa seleksi","Penerima tidak perlu diverifikasi","Data disimpan pada tautan publik"],a:0,e:"Pemrosesan data harus memiliki tujuan dan dasar yang sah serta pengamanan."},
+{m:"TKP",t:"Literasi Digital",q:"Mengapa perangkat kerja tidak boleh ditinggalkan dalam keadaan terbuka?",o:["Orang lain dapat mengakses informasi dan aplikasi yang aktif","Agar baterai lebih hemat","Agar jaringan lebih cepat","Supaya semua dokumen tercetak"],a:0,e:"Sesi terbuka berisiko disalahgunakan oleh pihak yang tidak berwenang."},
+{m:"TKP",t:"Literasi Digital",q:"Serangan ransomware umumnya bertujuan untuk ...",o:["Mengunci atau mengenkripsi data dan meminta tebusan","Memperbaiki sistem operasi","Mencadangkan dokumen","Menghapus iklan"],a:0,e:"Ransomware menyandera akses data dan biasanya meminta pembayaran."},
+{m:"TKP",t:"Literasi Digital",q:"Prinsip least privilege berarti ...",o:["Memberikan hak akses minimum sesuai kebutuhan tugas","Memberikan akses administrator kepada semua orang","Membagikan semua akun","Menonaktifkan autentikasi"],a:0,e:"Least privilege membatasi hak akses hanya pada yang diperlukan."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the best translation of 'Please submit the report before Friday.'",o:["Mohon serahkan laporan sebelum hari Jumat.","Mohon baca laporan setelah Jumat.","Laporan telah diserahkan hari Jumat.","Jangan membuat laporan hari Jumat."],a:0,e:"Submit berarti menyerahkan, dan before Friday berarti sebelum hari Jumat."},
+{m:"TKP",t:"Literasi Digital",q:"Jika sebuah aplikasi meminta izin akses yang tidak relevan dengan fungsinya, sebaiknya ...",o:["Tinjau dan tolak izin yang tidak diperlukan","Setujui seluruh izin","Bagikan akun aplikasi","Matikan semua pembaruan"],a:0,e:"Izin aplikasi sebaiknya dibatasi pada akses yang relevan dan diperlukan."}
+,
+{m:"TWK",t:"Pancasila",q:"Mengamalkan Pancasila dalam kehidupan sehari-hari berarti ...",o:["Menerapkan nilai-nilainya dalam sikap dan tindakan","Menghafal tanpa menjalankan","Menggunakan hanya saat upacara","Menjadikannya kepentingan pribadi"],a:0,e:"Pancasila sebagai dasar dan pandangan hidup diwujudkan melalui perilaku sehari-hari."},
+{m:"TWK",t:"UUD 1945",q:"Pasal 31 ayat (2) UUD 1945 mewajibkan setiap warga negara mengikuti pendidikan dasar dan pemerintah ...",o:["Wajib membiayainya","Dapat mengabaikannya","Menyerahkan seluruhnya kepada swasta","Membatasi hanya untuk pegawai"],a:0,e:"Pasal 31 ayat (2) mengatur kewajiban mengikuti pendidikan dasar dan pembiayaannya oleh pemerintah."},
+{m:"TWK",t:"Sejarah Indonesia",q:"Naskah Proklamasi Kemerdekaan Indonesia diketik oleh ...",o:["Sayuti Melik","Mohammad Hatta","Ahmad Soebardjo","Sukarni"],a:0,e:"Sayuti Melik mengetik naskah Proklamasi setelah dirumuskan."},
+{m:"TWK",t:"Bahasa Indonesia",q:"Penulisan kata depan yang tepat terdapat pada kalimat ...",o:["Buku itu disimpan di lemari.","Buku itu disimpan dilemari.","Pegawai bekerja dikantor.","Surat dibawa keruangan."],a:0,e:"Kata depan di yang menunjukkan tempat ditulis terpisah."},
+{m:"TWK",t:"UUD 1945",q:"Menurut Pasal 23 UUD 1945, APBN ditetapkan setiap tahun dengan ...",o:["Undang-undang","Keputusan kepala daerah","Peraturan desa","Peraturan organisasi"],a:0,e:"Pasal 23 mengatur APBN sebagai wujud pengelolaan keuangan negara yang ditetapkan setiap tahun dengan undang-undang."},
+{m:"TPU",t:"Kepegawaian",q:"Loyalitas ASN dalam nilai BerAKHLAK terutama berarti ...",o:["Berdedikasi dan mengutamakan kepentingan bangsa dan negara","Menaati perintah yang melanggar hukum","Mendahulukan kelompok pribadi","Menutup informasi publik tanpa dasar"],a:0,e:"Nilai Loyal mencakup dedikasi dan pengutamaan kepentingan bangsa dan negara."},
+{m:"TPU",t:"Pelayanan Publik",q:"Asas tidak diskriminatif dalam pelayanan berarti ...",o:["Memberikan layanan tanpa membedakan latar belakang yang tidak relevan","Melayani berdasarkan kedekatan","Mendahulukan pihak yang memberi imbalan","Menolak kelompok rentan"],a:0,e:"Pelayanan publik harus adil dan tidak diskriminatif."},
+{m:"TPU",t:"Perkantoran",q:"Tujuan pengelolaan arsip aktif di unit kerja adalah ...",o:["Mendukung kelancaran pekerjaan dan akses informasi","Menyimpan semua arsip tanpa klasifikasi","Menghapus dokumen yang sering dipakai","Membatasi informasi bagi petugas berwenang"],a:0,e:"Arsip aktif mendukung pelaksanaan tugas karena masih sering digunakan."},
+{m:"TPU",t:"Tata Kelola Pemerintahan",q:"Integritas aparatur ditunjukkan melalui ...",o:["Konsistensi antara nilai, ucapan, dan tindakan yang sesuai aturan","Menerima hadiah untuk mempercepat layanan","Mengubah data untuk kepentingan pribadi","Menyembunyikan pelanggaran"],a:0,e:"Integritas berarti bertindak jujur dan konsisten dengan nilai serta ketentuan."},
+{m:"TPU",t:"Literasi Digital",q:"Salah satu tanda situs web yang patut dicurigai adalah ...",o:["Alamat domain tiruan dan permintaan data sensitif yang tidak wajar","Menggunakan koneksi aman dan domain resmi","Memiliki informasi kontak resmi yang dapat diverifikasi","Diakses melalui portal instansi"],a:0,e:"Domain tiruan dan permintaan kredensial merupakan indikator risiko phishing."},
+{m:"TSI",t:"Renstra Instansi",q:"Penyusunan indikator kinerja perlu menetapkan sumber data agar ...",o:["Capaian dapat diverifikasi dan diukur secara konsisten","Angka dapat dibuat tanpa bukti","Pelaporan tidak diperlukan","Target berubah tanpa alasan"],a:0,e:"Sumber data menjamin keterlacakan dan keandalan pengukuran kinerja."},
+{m:"TSI",t:"SOTK",q:"Unit organisasi yang menjalankan fungsi pengawasan perlu memiliki ...",o:["Kewenangan dan independensi sesuai ketentuan","Tugas yang tumpang tindih dengan semua unit","Akses tanpa batas tanpa prosedur","Kepentingan operasional yang diawasi"],a:0,e:"Fungsi pengawasan memerlukan kewenangan dan objektivitas yang memadai."},
+{m:"TSI",t:"Perencanaan Pembangunan Daerah",q:"Dokumen RPJMD menjadi pedoman bagi penyusunan ...",o:["Renstra perangkat daerah","Daftar inventaris kantor","Jadwal rapat harian","Surat perjalanan dinas"],a:0,e:"Renstra perangkat daerah menjabarkan sasaran RPJMD sesuai tugas dan fungsi."},
+{m:"TSI",t:"Perencanaan Pembangunan Nasional",q:"Evaluasi capaian pembangunan sebaiknya membandingkan realisasi dengan ...",o:["Target dan indikator yang telah ditetapkan","Pendapat tanpa data","Jumlah rapat semata","Target instansi lain yang tidak relevan"],a:0,e:"Perbandingan realisasi dengan target dan indikator mengukur kemajuan secara objektif."},
+{m:"TSI",t:"Renstra Instansi",q:"Penyelarasan Renstra dan rencana kerja tahunan memastikan ...",o:["Kegiatan tahunan mendukung sasaran strategis","Program tahunan terlepas dari tujuan","Anggaran tidak memiliki prioritas","Evaluasi tidak perlu dilakukan"],a:0,e:"Rencana tahunan menjadi tahapan pelaksanaan sasaran strategis."},
+{m:"TPM",t:"Manajemen",q:"Prinsip PDCA terdiri atas ...",o:["Plan, Do, Check, Act","Prepare, Decide, Control, Assess","Plan, Deliver, Create, Apply","Process, Design, Check, Approve"],a:0,e:"PDCA adalah siklus perbaikan berkelanjutan: rencanakan, laksanakan, periksa, tindak lanjuti."},
+{m:"TPM",t:"Manajemen",q:"Penentuan sasaran yang menantang tetapi realistis dapat ...",o:["Mendorong kinerja dengan tetap mempertimbangkan kapasitas","Menjamin hasil tanpa sumber daya","Menghilangkan kebutuhan evaluasi","Membuat target tidak terukur"],a:0,e:"Sasaran perlu menantang namun dapat dicapai dengan sumber daya dan waktu yang tersedia."},
+{m:"TPM",t:"Manajemen",q:"Dalam manajemen waktu, tugas penting dan mendesak sebaiknya ...",o:["Diprioritaskan untuk segera ditangani","Selalu ditunda","Didelegasikan tanpa pertimbangan","Dihapus dari daftar kerja"],a:0,e:"Matriks prioritas menempatkan tugas penting dan mendesak sebagai prioritas segera."},
+{m:"TPM",t:"Manajemen",q:"Kinerja organisasi yang berorientasi hasil menekankan ...",o:["Manfaat dan capaian, bukan hanya banyaknya kegiatan","Jumlah kegiatan tanpa hasil","Banyaknya dokumen yang dicetak","Lamanya waktu rapat"],a:0,e:"Orientasi hasil menilai capaian dan manfaat dari kegiatan organisasi."},
+{m:"TPM",t:"Manajemen",q:"Pembelajaran organisasi terjadi ketika ...",o:["Pengalaman dan evaluasi digunakan untuk memperbaiki cara kerja","Kesalahan selalu disembunyikan","Umpan balik diabaikan","Prosedur tidak pernah ditinjau"],a:0,e:"Organisasi belajar dari pengalaman untuk meningkatkan kinerja dan proses."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Pemeliharaan arsip bertujuan untuk ...",o:["Menjaga kondisi fisik dan informasi arsip","Mengubah isi dokumen","Menghilangkan akses arsip","Mengurangi akurasi informasi"],a:0,e:"Pemeliharaan menjaga arsip agar tetap utuh dan dapat digunakan."},
+{m:"TKT",t:"Perkantoran - Tata Naskah Dinas",q:"Paraf dalam proses naskah dinas umumnya menunjukkan ...",o:["Pemeriksaan atau persetujuan sesuai alur tata naskah","Penghapusan nomor surat","Penggantian tanda tangan penerima","Bukti pembayaran"],a:0,e:"Paraf merupakan bagian dari proses pemeriksaan atau persetujuan naskah."},
+{m:"TKT",t:"Pelayanan Publik",q:"Petugas harus menyampaikan persyaratan layanan secara ...",o:["Terbuka, lengkap, dan konsisten","Berbeda kepada setiap pemohon tanpa dasar","Hanya setelah pembayaran","Tidak tertulis dan berubah-ubah"],a:0,e:"Persyaratan yang jelas mendukung kepastian dan transparansi layanan."},
+{m:"TKT",t:"Peraturan Kepegawaian",q:"PNS yang akan menggunakan cuti harus ...",o:["Mengajukan sesuai prosedur dan memperoleh persetujuan pejabat berwenang","Meninggalkan tugas tanpa pemberitahuan","Mengubah catatan kehadiran","Meminta rekan menandatangani daftar hadir"],a:0,e:"Pelaksanaan cuti mengikuti prosedur dan persetujuan sesuai ketentuan."},
+{m:"TKT",t:"Tata Kelola Pemerintahan",q:"Penerapan kode etik dan kode perilaku bertujuan untuk ...",o:["Menjaga profesionalitas dan integritas aparatur","Menghapus standar pelayanan","Memberi kebebasan menyalahgunakan jabatan","Mengurangi akuntabilitas"],a:0,e:"Kode etik dan perilaku menjadi pedoman profesionalitas dan integritas ASN."},
+{m:"TKP",t:"Bahasa Inggris",q:"Choose the correct sentence: 'The information ___ confidential.'",o:["Is","Are","Am","Be"],a:0,e:"Information adalah kata benda tak terhitung sehingga menggunakan is."},
+{m:"TKP",t:"Bahasa Inggris",q:"The phrase 'as soon as possible' is abbreviated as ...",o:["ASAP","FYI","ETA","RSVP"],a:0,e:"ASAP adalah singkatan dari as soon as possible."},
+{m:"TKP",t:"Literasi Digital",q:"Saat menerima permintaan reset kata sandi yang tidak Anda ajukan, sebaiknya ...",o:["Jangan klik tautan dan periksa keamanan akun melalui kanal resmi","Ikuti tautan dari email tanpa verifikasi","Kirim OTP kepada pengirim","Abaikan semua peringatan keamanan"],a:0,e:"Permintaan reset tak dikenal bisa menandakan upaya pengambilalihan akun."},
+{m:"TKP",t:"Literasi Digital",q:"Penyimpanan data pada perangkat eksternal harus memperhatikan ...",o:["Enkripsi, kontrol akses, dan kebijakan instansi","Kebebasan menyalin tanpa izin","Penggunaan perangkat milik siapa saja","Penyimpanan tanpa perlindungan"],a:0,e:"Media eksternal harus diamankan sesuai kebijakan perlindungan informasi."}
+,
+{m:"TPM",t:"Manajemen",q:"Rapat tindak lanjut yang efektif sebaiknya memeriksa ...",o:["Status penyelesaian tindakan, kendala, dan langkah berikutnya","Jumlah konsumsi rapat","Pendapat tanpa bukti","Hal yang tidak terkait keputusan sebelumnya"],a:0,e:"Tindak lanjut memastikan keputusan rapat dilaksanakan, kendala ditangani, dan hasil dapat dipantau."}
+];
+
+function referensiSoal(q){
+  const t=(q.t||"").toLowerCase();
+  const materi={
+    "Pancasila":"Pembukaan UUD Negara Republik Indonesia Tahun 1945; materi dasar negara dan Pancasila dari BPIP. Rujukan konseptual; bukan kutipan soal resmi.",
+    "UUD 1945":"Undang-Undang Dasar Negara Republik Indonesia Tahun 1945, terutama pasal yang terkait langsung dengan pokok soal.",
+    "Sejarah Indonesia":"Arsip Nasional Republik Indonesia (ANRI) dan arsip/dokumen sejarah primer terkait peristiwa yang ditanyakan.",
+    "Bahasa Indonesia":"Pedoman Umum Ejaan Bahasa Indonesia (PUEBI)/Ejaan Bahasa Indonesia yang Disempurnakan (EYD) dan materi Badan Pengembangan dan Pembinaan Bahasa.",
+    "Peraturan Kepegawaian":"Undang-Undang Nomor 20 Tahun 2023 tentang Aparatur Sipil Negara; untuk disiplin PNS gunakan PP Nomor 94 Tahun 2021 sesuai ruang lingkupnya.",
+    "Kepegawaian":"Undang-Undang Nomor 20 Tahun 2023 tentang Aparatur Sipil Negara; peraturan pelaksana yang relevan dengan pokok soal.",
+    "Pelayanan Publik":"Undang-Undang Nomor 25 Tahun 2009 tentang Pelayanan Publik.",
+    "Good Governance":"Undang-Undang Nomor 28 Tahun 1999 tentang Penyelenggaraan Negara yang Bersih dan Bebas dari Korupsi, Kolusi, dan Nepotisme; Undang-Undang Nomor 30 Tahun 2014 tentang Administrasi Pemerintahan.",
+    "Tata Kelola Pemerintahan":"Undang-Undang Nomor 30 Tahun 2014 tentang Administrasi Pemerintahan; Undang-Undang Nomor 28 Tahun 1999 tentang Penyelenggaraan Negara yang Bersih dan Bebas dari KKN.",
+    "Kebijakan Publik":"Undang-Undang Nomor 25 Tahun 2004 tentang Sistem Perencanaan Pembangunan Nasional apabila soal membahas perencanaan pembangunan; konsep kebijakan publik untuk pokok bahasan umum.",
+    "Perkantoran":"Peraturan Arsip Nasional Republik Indonesia Nomor 5 Tahun 2021 tentang Pedoman Umum Tata Naskah Dinas.",
+    "Literasi Digital":"Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi; Undang-Undang Informasi dan Transaksi Elektronik sebagaimana diubah terakhir dengan UU Nomor 1 Tahun 2024; panduan resmi BSSN sesuai topik.",
+    "Renstra Instansi":"Undang-Undang Nomor 25 Tahun 2004 tentang Sistem Perencanaan Pembangunan Nasional; Peraturan Presiden Nomor 12 Tahun 2025 tentang RPJMN 2025–2029; dokumen Renstra resmi kementerian/instansi yang menjadi objek soal.",
+    "SOTK":"Peraturan organisasi dan tata kerja serta bagan organisasi resmi Kementerian Imigrasi dan Pemasyarakatan yang berlaku pada saat materi diperbarui. Nomor peraturan harus dicocokkan dengan dokumen JDIH sebelum dijadikan rujukan spesifik.",
+    "Organisasi":"Peraturan organisasi dan tata kerja serta dokumen struktur organisasi resmi instansi yang menjadi objek soal.",
+    "Manajemen":"Konsep dasar manajemen (perencanaan, pengorganisasian, pengarahan, dan pengendalian) dari bahan ajar manajemen/administrasi pemerintahan; bukan satu peraturan perundang-undangan tertentu.",
+    "Bahasa Inggris":"Kaidah tata bahasa dan kosakata Bahasa Inggris dasar; rujukan kamus atau tata bahasa pembelajaran, bukan peraturan perundang-undangan.",
+    "Perkantoran - Tata Naskah Dinas":"Peraturan Arsip Nasional Republik Indonesia Nomor 5 Tahun 2021 tentang Pedoman Umum Tata Naskah Dinas.",
+    "Perkantoran - Kearsipan":"Undang-Undang Nomor 43 Tahun 2009 tentang Kearsipan; Peraturan Pemerintah Nomor 28 Tahun 2012 tentang Pelaksanaan UU Kearsipan.",
+    "Perkantoran - Surat Menyurat":"Peraturan Arsip Nasional Republik Indonesia Nomor 5 Tahun 2021 tentang Pedoman Umum Tata Naskah Dinas; kaidah Bahasa Indonesia dari Badan Bahasa.",
+    "Perkantoran - Rapat":"Pedoman administrasi perkantoran dan tata naskah dinas instansi; rujukan harus disesuaikan dengan prosedur organisasi yang ditanyakan.",
+    "Perkantoran - Administrasi":"Peraturan Arsip Nasional Republik Indonesia Nomor 5 Tahun 2021 tentang Pedoman Umum Tata Naskah Dinas; Undang-Undang Nomor 43 Tahun 2009 tentang Kearsipan.",
+    "Perencanaan Pembangunan Nasional":"Undang-Undang Nomor 25 Tahun 2004 tentang Sistem Perencanaan Pembangunan Nasional; Peraturan Presiden Nomor 12 Tahun 2025 tentang RPJMN 2025–2029.",
+    "Perencanaan Pembangunan Daerah":"Undang-Undang Nomor 25 Tahun 2004 tentang Sistem Perencanaan Pembangunan Nasional; peraturan perencanaan pembangunan daerah yang relevan dengan materi soal."
+  };
+  const rujukan=materi[q.t]||materi[q.t&&q.t.split(" - ")[0]];
+  const pedoman="Surat Edaran Kepala BKN Nomor 10 Tahun 2024 tentang Pedoman Pelaksanaan Ujian Dinas dan UPKP dengan Metode CAT BKN (pedoman jenis tes dan ruang lingkup materi). "; return pedoman+(rujukan ? rujukan+" Rujukan topikal; ketentuan/pasal spesifik tetap harus dicocokkan dengan isi soal." : "Rujukan materi umum sesuai topik; sumber dan ketentuan spesifik perlu diverifikasi.");
+}
+bank.forEach(q=>q.r=referensiSoal(q));
+
+let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="",sudahSelesai=false;
+const paketSoal={
+tingkat1:["TWK","TPU","TSI"],
+tingkat2:["TWK","TPU","TPM","TSI"],
+upkp:["TWK","TKT","TSI","TKP"]
+};
+const durasi={tingkat1:90,tingkat2:120,upkp:90};
+const kuota={
+  tingkat1:{TWK:40,TPU:40,TSI:20},
+  tingkat2:{TWK:40,TPU:50,TPM:20,TSI:20},
+  upkp:{TWK:30,TKT:25,TSI:30,TKP:15}
+};
+function hitungBank(){
+  return ["TWK","TPU","TSI","TPM","TKT","TKP"].map(m=>m+": "+bank.filter(q=>q.m===m).length+" soal").join(" • ");
+}
+const kategoriBank=["TWK","TPU","TSI","TPM","TKT","TKP"];
+document.getElementById("statusBank").textContent="Progres bank soal: "+kategoriBank.map(m=>m+" "+bank.filter(q=>q.m===m).length+"/50").join(" • ")+" | Total "+bank.length+"/300 soal unik."; 
+document.querySelectorAll("#pilihMateri option").forEach(opt=>{
+const jumlah=bank.filter(q=>q.m===opt.value).length;
+opt.textContent=opt.textContent.replace(/ \\(\\d+ soal\\)$/,"")+" ("+jumlah+" soal tersedia)";
+});
+
+function tampil(id){
+["home","latihan","ujian","hasil","riwayat"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+}
+function beranda(){clearInterval(interval);tampil("home")}
+function acak(arr){
+  const hasil=[...arr];
+  for(let i=hasil.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [hasil[i],hasil[j]]=[hasil[j],hasil[i]];
+  }
+  return hasil;
+}
+
+function acakPilihan(daftar){
+  return daftar.map(q=>{
+    const pilihan=acak(q.o.map((teks,index)=>({
+      teks:teks,
+      benar:index===q.a
+    })));
+    return {
+      ...q,
+      o:pilihan.map(x=>x.teks),
+      a:pilihan.findIndex(x=>x.benar)
+    };
+  });
+}
+function mulaiUjian(){
+const p=document.getElementById("paket").value;
+namaPaket=p==="tingkat1"?"Ujian Dinas Tingkat I":p==="tingkat2"?"Ujian Dinas Tingkat II":"UPKP D3–S3";
+const kurang=[];
+Object.entries(kuota[p]).forEach(([m,jumlah])=>{
+  const tersedia=bank.filter(x=>x.m===m).length;
+  if(tersedia<jumlah)kurang.push(m+": tersedia "+tersedia+" dari "+jumlah);
+});
+if(kurang.length){
+  alert("Simulasi belum dapat dimulai karena bank soal belum memenuhi kuota resmi.\\n\\n"+kurang.join("\\n")+"\\n\\nSoal tidak akan digandakan untuk memenuhi jumlah ujian. Silakan gunakan Latihan per Materi sementara bank soal dilengkapi.");
+  return;
+}
+soal=[];
+Object.entries(kuota[p]).forEach(([m,jumlah])=>{
+  soal=soal.concat(acakPilihan(acak(bank.filter(x=>x.m===m)).slice(0,jumlah)));
+});
+soal=acak(soal);
+mode="ujian";sisa=durasi[p]*60;
+mulai();
+}
+function bukaLatihan(){tampil("latihan")}
+function mulaiLatihan(){
+const m=document.getElementById("pilihMateri").value;
+soal=acakPilihan(acak(bank.filter(x=>x.m===m)));
+if(!soal.length){alert("Belum ada soal untuk materi ini.");return}
+namaPaket="Latihan "+m;mode="latihan";sisa=0;mulai();
+}
+function mulai(){
+jawaban=Array(soal.length).fill(null);pos=0;sudahSelesai=false;
+document.getElementById("judulUjian").textContent=namaPaket;
+tampil("ujian");render();
+clearInterval(interval);
+if(mode==="ujian"){
+updateTimer();
+interval=setInterval(()=>{if(sudahSelesai){clearInterval(interval);return;}sisa--;if(sisa<=0){sisa=0;updateTimer();selesai(true);return;}updateTimer();},1000);
+}else document.getElementById("timer").textContent="MODE LATIHAN";
+}
+function updateTimer(){
+let m=Math.floor(sisa/60),d=sisa%60;
+document.getElementById("timer").textContent=String(m).padStart(2,"0")+":"+String(d).padStart(2,"0");
+}
+function render(){
+const q=soal[pos];
+document.getElementById("nomor").textContent="Soal "+(pos+1)+" dari "+soal.length;
+document.getElementById("statusJawaban").textContent="Terjawab: "+jawaban.filter(x=>x!==null).length+" • Belum dijawab: "+jawaban.filter(x=>x===null).length;
+document.getElementById("bar").style.width=((pos+1)/soal.length*100)+"%";
+document.getElementById("pertanyaan").textContent=q.q;
+document.getElementById("kategori").textContent=q.m+" • "+q.t;
+const area=document.getElementById("opsi");area.innerHTML="";
+q.o.forEach((x,i)=>{
+let b=document.createElement("button");
+b.className="option"+(jawaban[pos]===i?" selected":"");
+b.textContent=String.fromCharCode(65+i)+". "+x;
+b.onclick=()=>{jawaban[pos]=i;render()};
+area.appendChild(b);
+});
+}
+function sebelumnya(){if(pos>0){pos--;render()}}
+function berikutnya(){if(pos<soal.length-1){pos++;render()}else alert("Ini soal terakhir. Tekan Selesai untuk melihat hasil.")}
+function konfirmasiSelesai(){
+if(sudahSelesai)return;
+const terjawab=jawaban.filter(x=>x!==null).length;
+const kosong=jawaban.length-terjawab;
+const info=kosong>0
+  ?"Anda sudah menjawab "+terjawab+" dari "+soal.length+" soal. Masih ada "+kosong+" soal yang belum dijawab. " 
+  :"Semua "+soal.length+" soal sudah dijawab. ";
+if(confirm(info+"Anda yakin ingin menyelesaikan dan mengumpulkan ujian sekarang?"))selesai(false);
+}
+function selesai(karenaWaktuHabis=false){
+if(sudahSelesai)return;
+sudahSelesai=true;
+clearInterval(interval);
+if(karenaWaktuHabis){document.getElementById("timer").textContent="WAKTU HABIS";}
+let benar=0;
+soal.forEach((q,i)=>{if(jawaban[i]===q.a)benar++});
+let nilai=Math.round(benar/soal.length*100);
+document.getElementById("nilai").textContent=nilai;
+const kosong=jawaban.filter(x=>x===null).length;
+const salah=soal.length-benar-kosong;
+document.getElementById("rincian").textContent="Benar: "+benar+" | Salah: "+salah+" | Tidak dijawab: "+kosong+" | Jumlah soal: "+soal.length;
+const perKategori={};
+soal.forEach((q,i)=>{if(!perKategori[q.m])perKategori[q.m]={total:0,benar:0};perKategori[q.m].total++;if(jawaban[i]===q.a)perKategori[q.m].benar++;});
+document.getElementById("rincianKategori").innerHTML="<h3>Nilai per kategori</h3>"+Object.entries(perKategori).map(([m,v])=>"<p>"+m+": "+v.benar+" dari "+v.total+" benar</p>").join("");
+let data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+data.unshift({nama:namaPaket,nilai,tanggal:new Date().toLocaleString("id-ID"),benar,total:soal.length});
+localStorage.setItem("riwayatPintar",JSON.stringify(data.slice(0,30)));
+tampil("hasil");
+}
+function lihatPembahasan(){
+const area=document.getElementById("pembahasan");area.innerHTML="";
+soal.forEach((q,i)=>{
+let d=document.createElement("div");d.className="card";
+let hasil=jawaban[i]===q.a;
+d.innerHTML="<b>Soal "+(i+1)+"</b><p>"+q.q+"</p><p>Jawaban benar: <b>"+String.fromCharCode(65+q.a)+". "+q.o[q.a]+"</b></p><p>Jawaban kamu: "+(jawaban[i]===null?"Tidak dijawab":String.fromCharCode(65+jawaban[i])+". "+q.o[jawaban[i]])+"</p><p><b>"+(hasil?"Benar":"Belum tepat")+"</b></p><p class='small'>Pembahasan: "+q.e+"</p><p class='small'><b>Referensi belajar:</b> "+(q.r||referensiSoal(q))+"</p>";
+area.appendChild(d);
+});
+area.scrollIntoView({behavior:"smooth"});
+}
+function hapusRiwayat(index){
+if(!confirm("Hapus catatan riwayat ini?"))return;
+const data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+data.splice(index,1);localStorage.setItem("riwayatPintar",JSON.stringify(data));riwayat();
+}
+function riwayat(){
+const data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
+const area=document.getElementById("daftarRiwayat");area.innerHTML="";
+if(!data.length)area.textContent="Belum ada riwayat latihan.";
+data.forEach((x,i)=>{
+let d=document.createElement("div");d.className="card";
+d.innerHTML="<b>"+x.nama+"</b><p>Nilai: "+x.nilai+" | Benar: "+x.benar+"/"+x.total+"</p><p class='small'>"+x.tanggal+"</p><button class='secondary' onclick='hapusRiwayat("+i+")'>HAPUS CATATAN</button>";
+area.appendChild(d);
+});
+tampil("riwayat");
+}
+</script>
+</body>
+</html>
