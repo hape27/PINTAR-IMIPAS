@@ -26,6 +26,16 @@ button:disabled{opacity:.5}
 #timer{font-weight:bold;color:#b33;font-size:19px}
 .progress{height:8px;background:#e1e9e3;border-radius:8px;overflow:hidden}
 #bar{height:8px;background:#248653;width:0}
+.nav-soal{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;margin-top:12px}
+button.nomor-soal{width:100%;margin:0;padding:9px 2px;border:1px solid #d5ded8;background:#edf1ee;color:#34483c;font-size:13px;border-radius:7px}
+button.nomor-soal.terjawab{background:#d5f0df;border-color:#2d9b5c;color:#155b35}
+button.nomor-soal.kosong{background:#f1f3f2;border-color:#d8ddda;color:#68736c}
+button.nomor-soal.aktif{background:#176b49;border:2px solid #0d4b32;color:#fff;font-weight:bold}
+.legend-soal{display:flex;flex-wrap:wrap;gap:12px;margin-top:9px;font-size:12px;color:#68776e}
+.legend-soal span{display:inline-flex;align-items:center;gap:5px}
+.legend-soal i{display:inline-block;width:10px;height:10px;border-radius:3px;background:#f1f3f2;border:1px solid #d8ddda}
+.legend-soal i.sudah{background:#d5f0df;border-color:#2d9b5c}
+.legend-soal i.aktif{background:#176b49;border-color:#0d4b32}
 .result{font-size:28px;font-weight:bold;color:#176b49}
 footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 </style>
@@ -85,6 +95,9 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 </div>
 <p class="small" id="nomor"></p><p class="small" id="statusJawaban"></p>
 <div class="progress"><div id="bar"></div></div>
+<div class="small" style="margin-top:12px"><b>Navigasi Soal</b> — pilih nomor untuk berpindah langsung</div>
+<div id="navigasiSoal" class="nav-soal" aria-label="Navigasi nomor soal"></div>
+<div class="legend-soal"><span><i class="aktif"></i> Sedang dibuka</span><span><i class="sudah"></i> Sudah dijawab</span><span><i></i> Belum dijawab</span></div>
 </div>
 <div class="card">
 <h2 id="pertanyaan"></h2>
@@ -571,6 +584,7 @@ const q=soal[pos];
 document.getElementById("nomor").textContent="Soal "+(pos+1)+" dari "+soal.length;
 document.getElementById("statusJawaban").textContent="Terjawab: "+jawaban.filter(x=>x!==null).length+" • Belum dijawab: "+jawaban.filter(x=>x===null).length;
 document.getElementById("bar").style.width=((pos+1)/soal.length*100)+"%";
+renderNavigasiSoal();
 document.getElementById("pertanyaan").textContent=q.q;
 document.getElementById("kategori").textContent=q.m+" • "+q.t;
 const area=document.getElementById("opsi");area.innerHTML="";
@@ -580,6 +594,22 @@ b.className="option"+(jawaban[pos]===i?" selected":"");
 b.textContent=String.fromCharCode(65+i)+". "+x;
 b.onclick=()=>{jawaban[pos]=i;render()};
 area.appendChild(b);
+});
+}
+function renderNavigasiSoal(){
+const area=document.getElementById("navigasiSoal");
+area.innerHTML="";
+soal.forEach((q,i)=>{
+  const b=document.createElement("button");
+  const terjawab=jawaban[i]!==null;
+  b.type="button";
+  b.className="nomor-soal "+(i===pos?"aktif":terjawab?"terjawab":"kosong");
+  b.textContent=String(i+1);
+  b.setAttribute("aria-label","Soal "+(i+1)+(terjawab?", sudah dijawab":", belum dijawab")+(i===pos?", sedang dibuka":""));
+  b.setAttribute("aria-current",i===pos?"step":"false");
+  b.title="Soal "+(i+1)+(terjawab?" • Sudah dijawab":" • Belum dijawab");
+  b.onclick=()=>{pos=i;render();};
+  area.appendChild(b);
 });
 }
 function sebelumnya(){if(pos>0){pos--;render()}}
