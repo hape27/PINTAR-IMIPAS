@@ -167,11 +167,32 @@ function tampil(id){
 document.getElementById(id).classList.remove("hidden");
 }
 function beranda(){clearInterval(interval);tampil("home")}
-function acak(arr){return [...arr].sort(()=>Math.random()-.5)}
+function acak(arr){
+  const hasil=[...arr];
+  for(let i=hasil.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [hasil[i],hasil[j]]=[hasil[j],hasil[i]];
+  }
+  return hasil;
+}
+
+function acakPilihan(daftar){
+  return daftar.map(q=>{
+    const pilihan=acak(q.o.map((teks,index)=>({
+      teks:teks,
+      benar:index===q.a
+    })));
+    return {
+      ...q,
+      o:pilihan.map(x=>x.teks),
+      a:pilihan.findIndex(x=>x.benar)
+    };
+  });
+}
 function mulaiUjian(){
 const p=document.getElementById("paket").value;
 namaPaket=p==="tingkat1"?"Ujian Dinas Tingkat I":p==="tingkat2"?"Ujian Dinas Tingkat II":"UPKP D3–S3";
-soal=acak(bank.filter(x=>paketSoal[p].includes(x.m)));
+soal=acakPilihan(acak(bank.filter(x=>paketSoal[p].includes(x.m))));
 if(!soal.length){alert("Belum ada soal untuk paket ini.");return}
 mode="ujian";sisa=durasi[p]*60;
 mulai();
@@ -179,7 +200,7 @@ mulai();
 function bukaLatihan(){tampil("latihan")}
 function mulaiLatihan(){
 const m=document.getElementById("pilihMateri").value;
-soal=acak(bank.filter(x=>x.m===m));
+soal=acakPilihan(acak(bank.filter(x=>x.m===m)));
 if(!soal.length){alert("Belum ada soal untuk materi ini.");return}
 namaPaket="Latihan "+m;mode="latihan";sisa=0;mulai();
 }
