@@ -472,7 +472,7 @@ function referensiSoal(q){
     "Perencanaan Pembangunan Daerah":"Undang-Undang Nomor 25 Tahun 2004 tentang Sistem Perencanaan Pembangunan Nasional; peraturan perencanaan pembangunan daerah yang relevan dengan materi soal."
   };
   const rujukan=materi[q.t]||materi[q.t&&q.t.split(" - ")[0]];
-  return rujukan ? rujukan+" Rujukan topikal; pasal/ketentuan spesifik perlu dicocokkan dengan isi soal." : "Rujukan materi umum sesuai topik. Sumber dan ketentuan spesifik perlu diverifikasi sebelum soal digunakan sebagai materi final.";
+  const pedoman="Surat Edaran Kepala BKN Nomor 10 Tahun 2024 tentang Pedoman Pelaksanaan Ujian Dinas dan UPKP dengan Metode CAT BKN (pedoman jenis tes dan ruang lingkup materi). "; return pedoman+(rujukan ? rujukan+" Rujukan topikal; ketentuan/pasal spesifik tetap harus dicocokkan dengan isi soal." : "Rujukan materi umum sesuai topik; sumber dan ketentuan spesifik perlu diverifikasi.");
 }
 bank.forEach(q=>q.r=referensiSoal(q));
 
