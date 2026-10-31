@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINTAR IMIPAS</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#172554;font-family:Arial,sans-serif}
+header{background:#123b65;color:white;padding:22px;text-align:center}
+header h1{margin:0;font-size:25px}
+header p{margin:7px 0 0;font-size:13px}
+main{max-width:650px;margin:auto;padding:16px}
+.card{background:white;border-radius:13px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #0001}
+button,select{padding:12px;border:0;border-radius:8px;font-size:15px}
+button{background:#155e9a;color:white;cursor:pointer}
+button:disabled{opacity:.4}
+select{width:100%;border:1px solid #ccd5df;background:white}
+.menu button{width:100%;margin-top:9px;text-align:left}
+.option{display:block;width:100%;text-align:left;margin:9px 0;background:#e8eef5;color:#172554}
+.option.selected{background:#b9dcff;border:2px solid #155e9a}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.actions button{flex:1}
+.muted{color:#64748b;font-size:13px}
+#exam{display:none}
+#result{display:none}
+</style>
+</head>
+<body>
+<header>
+<h1>PINTAR IMIPAS</h1>
+<p>Platform Latihan Ujian Dinas dan UPKP</p>
+</header>
+<main>
+<section id="home">
+<div class="card">
+<h3>Selamat Datang</h3>
+<p>Persiapkan diri menghadapi ujian dengan latihan soal dan pembahasan.</p>
+<p class="muted">Aplikasi dapat digunakan secara offline setelah terpasang.</p>
+</div>
+<div class="card menu">
+<h3>Pilih Paket Ujian</h3>
+<button onclick="start('Tingkat I')">Ujian Dinas Tingkat I</button>
+<button onclick="start('Tingkat II')">Ujian Dinas Tingkat II</button>
+<button onclick="start('UPKP')">Ujian Penyesuaian Kenaikan Pangkat</button>
+</div>
+<div class="card">
+<h3>Riwayat Nilai</h3>
+<div id="history">Belum ada riwayat ujian.</div>
+</div>
+</section>
+
+<section id="exam">
+<div class="card">
+<div id="info"></div>
+<div class="actions">
+<span id="timer"></span>
+<span id="number"></span>
+</div>
+<hr>
+<h3 id="question"></h3>
+<div id="options"></div>
+<p id="explanation" class="muted"></p>
+<div class="actions">
+<button onclick="prev()">Sebelumnya</button>
+<button onclick="next()">Berikutnya</button>
+<button onclick="finish()">Selesai</button>
+</div>
+</div>
+</section>
+
+<section id="result">
+<div class="card">
+<h2>Hasil Ujian</h2>
+<h1 id="score"></h1>
+<p id="detail"></p>
+<button onclick="home()">Kembali ke Beranda</button>
+</div>
+</section>
+</main>
+
+<script>
+const subjects={
+"TWK":"Tes Wawasan Kebangsaan",
+"TPU":"Tes Pengetahuan Umum",
+"TSI":"Tes Substansi Instansi",
+"TPM":"Tes Pengetahuan Manajerial",
+"TKT":"Tes Kompetensi Teknis",
+"TKP":"Tes Kompetensi Penunjang",
+"UPKP":"Ujian Penyesuaian Kenaikan Pangkat"
+};
+
+const bank=[
+["TWK","Pancasila sebagai dasar negara tercantum dalam bagian apa?","Pembukaan UUD 1945","Batang tubuh UUD","Peraturan pemerintah","Ketetapan menteri",0,"Pancasila tercantum dalam alinea keempat Pembukaan UUD 1945."],
+["TWK","Semboyan Bhinneka Tunggal Ika memiliki arti?","Berbeda-beda tetapi tetap satu","Bersatu kita teguh","Keadilan bagi semua","Merdeka atau mati",0,"Bhinneka Tunggal Ika berarti berbeda-beda tetapi tetap satu."],
+["TWK","Bentuk negara Indonesia adalah?","Federasi","Kesatuan","Monarki","Konfederasi",1,"Pasal 1 ayat (1) UUD 1945 menyatakan Indonesia ialah Negara Kesatuan."],
+["TWK","Lembaga yang berwenang mengubah UUD adalah?","Presiden","DPR","MPR","MA",2,"MPR berwenang mengubah dan menetapkan UUD."],
+["TWK","Hari Lahir Pancasila diperingati setiap?","1 Juni","17 Agustus","20 Mei","28 Oktober",0,"Hari Lahir Pancasila diperingati pada 1 Juni."],
+["TPU","Hasil dari 25 x 4 adalah?","50","75","100","125",2,"25 dikalikan 4 sama dengan 100."],
+["TPU","Sinonim kata integritas adalah?","Kejujuran","Kekuasaan","Kekayaan","Kecepatan",0,"Integritas berkaitan dengan kejujuran dan konsistensi nilai moral."],
+["TPU","Jika semua A adalah B dan semua B adalah C, maka?","Semua A adalah C","Semua C adalah A","A bukan C","Tidak ada hubungan",0,"Kesimpulan logisnya adalah semua A termasuk C."],
+["TSI","Tujuan utama pemasyarakatan adalah?","Pembalasan","Reintegrasi sosial","Pengucilan","Pemberian hukuman tambahan",1,"Pemasyarakatan berorientasi pada reintegrasi sosial."],
+["TSI","Pembinaan warga binaan dilakukan dengan prinsip?","Diskriminasi","Penghormatan HAM","Pengabaian hak","Pembatasan tanpa dasar",1,"Pelayanan dan pembinaan harus menghormati hak asasi manusia."],
+["TPM","Seorang pemimpin yang baik harus mampu?","Menghindari tanggung jawab","Mengambil keputusan secara tepat","Menyalahkan bawahan","Menolak masukan",1,"Pemimpin perlu mengambil keputusan secara tepat dan bertanggung jawab."],
+["TPM","Ketika terjadi konflik tim, langkah awal yang tepat adalah?","Mendengarkan kedua pihak","Langsung menghukum","Membiarkan konflik","Memihak teman",0,"Konflik perlu ditangani dengan mendengarkan pihak terkait secara objektif."],
+["TKT","Apa tujuan pemeriksaan kesehatan dasar?","Mengetahui kondisi kesehatan","Memberi hukuman","Mengurangi hak pasien","Mengganti diagnosis dokter",0,"Pemeriksaan dasar membantu mengidentifikasi kondisi kesehatan."],
+["TKT","TB merupakan penyakit yang terutama menyerang?","Paru-paru","Kulit","Tulang saja","Mata",0,"Tuberkulosis paling sering menyerang paru-paru."],
+["TKP","Anda melihat rekan kesulitan menyelesaikan tugas. Sikap terbaik?","Membantu sesuai kemampuan","Membiarkan","Menyalahkan","Menghindar",0,"Kerja sama dan kepedulian membantu pencapaian tujuan tim."],
+["UPKP","Kenaikan pangkat pada prinsipnya harus memperhatikan?","Persyaratan dan ketentuan berlaku","Kedekatan pribadi","Keinginan sendiri","Masa kerja saja",0,"Kenaikan pangkat mengikuti persyaratan dan ketentuan kepegawaian."]
+];
+
+let questions=[],answers=[],index=0,seconds=1800,interval=null;
+function start(pkg){
+let allowed=pkg==="Tingkat I"?["TWK","TPU","TSI"]:pkg==="Tingkat II"?["TWK","TPU","TPM","TSI"]:["UPKP"];
+questions=bank.filter(q=>allowed.includes(q[0])).sort(()=>Math.random()-.5);
+answers=Array(questions.length).fill(null);index=0;seconds=1800;
+document.getElementById("home").style.display="none";
+document.getElementById("result").style.display="none";
+document.getElementById("exam").style.display="block";
+document.getElementById("info").innerText="Paket "+pkg;
+clearInterval(interval);
+interval=setInterval(()=>{
+seconds--;
+document.getElementById("timer").innerText="Waktu: "+Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
+if(seconds<=0)finish();
+},1000);
+show();
+}
+function show(){
+let q=questions[index];
+document.getElementById("number").innerText="Soal "+(index+1)+" / "+questions.length;
+document.getElementById("question").innerText=q[1];
+document.getElementById("options").innerHTML="";
+q.slice(2,6).forEach((v,i)=>{
+let b=document.createElement("button");
+b.className="option"+(answers[index]===i?" selected":"");
+b.innerText=String.fromCharCode(65+i)+". "+v;
+b.onclick=()=>{answers[index]=i;show()};
+document.getElementById("options").appendChild(b);
+});
+document.getElementById("explanation").innerText="";
+}
+function next(){if(index<questions.length-1){index++;show()}}
+function prev(){if(index>0){index--;show()}}
+function finish(){
+clearInterval(interval);
+let correct=0;
+questions.forEach((q,i)=>{if(answers[i]===q[6])correct++});
+let score=Math.round(correct/questions.length*100);
+document.getElementById("exam").style.display="none";
+document.getElementById("result").style.display="block";
+document.getElementById("score").innerText=score;
+document.getElementById("detail").innerText=correct+" benar dari "+questions.length+" soal.";
+let h=JSON.parse(localStorage.getItem("pintarHistory")||"[]");
+h.unshift({date:new Date().toLocaleString("id-ID"),score});
+localStorage.setItem("pintarHistory",JSON.stringify(h.slice(0,20)));
+loadHistory();
+}
+function home(){
+document.getElementById("result").style.display="none";
+document.getElementById("home").style.display="block";
+}
+function loadHistory(){
+let h=JSON.parse(localStorage.getItem("pintarHistory")||"[]");
+document.getElementById("history").innerHTML=h.length?h.map(x=>x.date+" — Nilai "+x.score).join("<br>"):"Belum ada riwayat ujian.";
+}
+loadHistory();
+</script>
+</body>
+</html>
