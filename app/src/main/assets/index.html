@@ -33,7 +33,7 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 <body>
 <header>
 <h1>PINTAR IMIPAS</h1>
-<p>Platform Informasi dan Latihan Ujian Dinas & UPKP</p>
+<p>Pusat Informasi dan Latihan Ujian Dinas Kementerian Imigrasi dan Pemasyarakatan</p>
 <p>Kementerian Imigrasi dan Pemasyarakatan</p>
 </header>
 <main>
@@ -55,8 +55,9 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 </div>
 <div class="card">
 <h2>Materi Pembelajaran</h2>
-<p class="small">TWK • TPU • TSI • TPM • TKT • TKP • PERKANTORAN</p>
-<p class="small">Materi Perkantoran juga tersedia sebagai latihan tambahan UPKP.</p>
+<p class="small">Enam kategori ujian: TWK • TPU • TSI • TPM • TKT • TKP</p>
+<p class="small">Materi Perkantoran masuk dalam TPU dan TKT, bukan kategori ujian tersendiri.</p>
+<p class="small" id="statusBank"></p>
 </div>
 </section>
 
@@ -69,8 +70,7 @@ footer{text-align:center;padding:20px;color:#718078;font-size:12px}
 <option value="TSI">TSI - Substansi Instansi</option>
 <option value="TPM">TPM - Manajemen</option>
 <option value="TKT">TKT - Pengetahuan Teknis</option>
-<option value="TKP">TKP - Kompetensi Pilihan</option>
-<option value="Perkantoran">Perkantoran</option>
+<option value="TKP">TKP - Bahasa Inggris & Literasi Digital</option>
 </select>
 <button onclick="mulaiLatihan()">MULAI LATIHAN</button>
 <button class="secondary" onclick="beranda()">KEMBALI</button>
@@ -147,11 +147,11 @@ const bank=[
 {m:"TKP",t:"Bahasa Inggris",q:"The English word for 'pelayanan' is ...",o:["Service","Office","Building","Meeting"],a:0,e:"Service berarti pelayanan."},
 {m:"TKP",t:"Literasi Digital",q:"Phishing adalah tindakan ...",o:["Mencadangkan data","Penipuan untuk memperoleh informasi sensitif","Memperbarui perangkat","Mengamankan jaringan"],a:1,e:"Phishing merupakan upaya penipuan untuk memperoleh data sensitif."},
 
-{m:"Perkantoran",t:"Tata Naskah Dinas",q:"Naskah dinas digunakan sebagai sarana ...",o:["Komunikasi kedinasan","Komunikasi pribadi","Iklan komersial","Hiburan"],a:0,e:"Naskah dinas merupakan komunikasi resmi dalam pelaksanaan tugas kedinasan."},
-{m:"Perkantoran",t:"Kearsipan",q:"Tujuan utama pengarsipan dokumen adalah ...",o:["Mempersulit pencarian","Menjamin dokumen tertata dan mudah ditemukan","Menghilangkan dokumen","Menumpuk kertas"],a:1,e:"Pengarsipan membantu penyimpanan, pemeliharaan, dan penemuan kembali dokumen."},
-{m:"Perkantoran",t:"Surat Menyurat",q:"Buku agenda surat digunakan untuk ...",o:["Mencatat surat masuk dan keluar","Mencatat absensi tamu saja","Mencatat inventaris kendaraan","Menyusun anggaran"],a:0,e:"Buku agenda digunakan untuk pencatatan dan pengendalian surat."},
-{m:"Perkantoran",t:"Rapat",q:"Dokumen yang mencatat jalannya rapat disebut ...",o:["Daftar inventaris","Notula","Surat tugas","Kuitansi"],a:1,e:"Notula berisi catatan jalannya rapat dan hasil pembahasan."},
-{m:"Perkantoran",t:"Administrasi",q:"Salah satu tujuan inventarisasi barang kantor adalah ...",o:["Menghilangkan pengawasan","Mengetahui jumlah dan kondisi barang","Menghindari pencatatan","Menghapus tanggung jawab"],a:1,e:"Inventarisasi membantu pengendalian aset dan barang milik instansi."}
+{m:"TPU",t:"Perkantoran - Tata Naskah Dinas",q:"Naskah dinas digunakan sebagai sarana ...",o:["Komunikasi kedinasan","Komunikasi pribadi","Iklan komersial","Hiburan"],a:0,e:"Naskah dinas merupakan komunikasi resmi dalam pelaksanaan tugas kedinasan."},
+{m:"TKT",t:"Perkantoran - Kearsipan",q:"Tujuan utama pengarsipan dokumen adalah ...",o:["Mempersulit pencarian","Menjamin dokumen tertata dan mudah ditemukan","Menghilangkan dokumen","Menumpuk kertas"],a:1,e:"Pengarsipan membantu penyimpanan, pemeliharaan, dan penemuan kembali dokumen."},
+{m:"TPU",t:"Perkantoran - Surat Menyurat",q:"Buku agenda surat digunakan untuk ...",o:["Mencatat surat masuk dan keluar","Mencatat absensi tamu saja","Mencatat inventaris kendaraan","Menyusun anggaran"],a:0,e:"Buku agenda digunakan untuk pencatatan dan pengendalian surat."},
+{m:"TKT",t:"Perkantoran - Rapat",q:"Dokumen yang mencatat jalannya rapat disebut ...",o:["Daftar inventaris","Notula","Surat tugas","Kuitansi"],a:1,e:"Notula berisi catatan jalannya rapat dan hasil pembahasan."},
+{m:"TKT",t:"Perkantoran - Administrasi",q:"Salah satu tujuan inventarisasi barang kantor adalah ...",o:["Menghilangkan pengawasan","Mengetahui jumlah dan kondisi barang","Menghindari pencatatan","Menghapus tanggung jawab"],a:1,e:"Inventarisasi membantu pengendalian aset dan barang milik instansi."}
 ];
 
 let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="";
@@ -161,6 +161,15 @@ tingkat2:["TWK","TPU","TPM","TSI"],
 upkp:["TWK","TKT","TSI","TKP"]
 };
 const durasi={tingkat1:90,tingkat2:120,upkp:90};
+const kuota={
+  tingkat1:{TWK:40,TPU:40,TSI:20},
+  tingkat2:{TWK:40,TPU:50,TPM:20,TSI:20},
+  upkp:{TWK:30,TKT:25,TSI:30,TKP:15}
+};
+function hitungBank(){
+  return ["TWK","TPU","TSI","TPM","TKT","TKP"].map(m=>m+": "+bank.filter(q=>q.m===m).length+" soal").join(" • ");
+}
+document.getElementById("statusBank").textContent="Bank saat ini: "+bank.length+" soal unik. Target pengembangan: 300 soal (50 per kategori).";
 
 function tampil(id){
 ["home","latihan","ujian","hasil","riwayat"].forEach(x=>document.getElementById(x).classList.add("hidden"));
@@ -192,8 +201,20 @@ function acakPilihan(daftar){
 function mulaiUjian(){
 const p=document.getElementById("paket").value;
 namaPaket=p==="tingkat1"?"Ujian Dinas Tingkat I":p==="tingkat2"?"Ujian Dinas Tingkat II":"UPKP D3–S3";
-soal=acakPilihan(acak(bank.filter(x=>paketSoal[p].includes(x.m))));
-if(!soal.length){alert("Belum ada soal untuk paket ini.");return}
+const kurang=[];
+Object.entries(kuota[p]).forEach(([m,jumlah])=>{
+  const tersedia=bank.filter(x=>x.m===m).length;
+  if(tersedia<jumlah)kurang.push(m+": tersedia "+tersedia+" dari "+jumlah);
+});
+if(kurang.length){
+  alert("Simulasi belum dapat dimulai karena bank soal belum memenuhi kuota resmi.\\n\\n"+kurang.join("\\n")+"\\n\\nSoal tidak akan digandakan untuk memenuhi jumlah ujian. Silakan gunakan Latihan per Materi sementara bank soal dilengkapi.");
+  return;
+}
+soal=[];
+Object.entries(kuota[p]).forEach(([m,jumlah])=>{
+  soal=soal.concat(acakPilihan(acak(bank.filter(x=>x.m===m)).slice(0,jumlah)));
+});
+soal=acak(soal);
 mode="ujian";sisa=durasi[p]*60;
 mulai();
 }
