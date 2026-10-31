@@ -489,7 +489,7 @@ function referensiSoal(q){
 }
 bank.forEach(q=>q.r=referensiSoal(q));
 
-let soal=[],jawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="",sudahSelesai=false;
+let soal=[],jawaban=[],hasilJawaban=[],pos=0,sisa=5400,interval=null,mode="",namaPaket="",sudahSelesai=false;
 const paketSoal={
 tingkat1:["TWK","TPU","TSI"],
 tingkat2:["TWK","TPU","TPM","TSI"],
@@ -566,7 +566,7 @@ if(!soal.length){alert("Belum ada soal untuk materi ini.");return}
 namaPaket="Latihan "+m;mode="latihan";sisa=0;mulai();
 }
 function mulai(){
-jawaban=Array(soal.length).fill(null);pos=0;sudahSelesai=false;
+jawaban=Array(soal.length).fill(null);hasilJawaban=[];pos=0;sudahSelesai=false;
 document.getElementById("judulUjian").textContent=namaPaket;
 tampil("ujian");render();
 clearInterval(interval);
@@ -580,7 +580,8 @@ let m=Math.floor(sisa/60),d=sisa%60;
 document.getElementById("timer").textContent=String(m).padStart(2,"0")+":"+String(d).padStart(2,"0");
 }
 function render(){
-const q=soal[pos];
+const indeksSoal=pos;
+const q=soal[indeksSoal];
 document.getElementById("nomor").textContent="Soal "+(pos+1)+" dari "+soal.length;
 document.getElementById("statusJawaban").textContent="Terjawab: "+jawaban.filter(x=>x!==null).length+" • Belum dijawab: "+jawaban.filter(x=>x===null).length;
 document.getElementById("bar").style.width=((pos+1)/soal.length*100)+"%";
@@ -592,7 +593,7 @@ q.o.forEach((x,i)=>{
 let b=document.createElement("button");
 b.className="option"+(jawaban[pos]===i?" selected":"");
 b.textContent=String.fromCharCode(65+i)+". "+x;
-b.onclick=()=>{jawaban[pos]=i;render()};
+b.onclick=()=>{jawaban[indeksSoal]=i;render()};
 area.appendChild(b);
 });
 }
@@ -625,18 +626,19 @@ if(confirm(info+"Anda yakin ingin menyelesaikan dan mengumpulkan ujian sekarang?
 }
 function selesai(karenaWaktuHabis=false){
 if(sudahSelesai)return;
+hasilJawaban=jawaban.slice();
 sudahSelesai=true;
 clearInterval(interval);
 if(karenaWaktuHabis){document.getElementById("timer").textContent="WAKTU HABIS";}
 let benar=0;
-soal.forEach((q,i)=>{if(jawaban[i]===q.a)benar++});
+soal.forEach((q,i)=>{if(hasilJawaban[i]===q.a)benar++});
 let nilai=Math.round(benar/soal.length*100);
 document.getElementById("nilai").textContent=nilai;
-const kosong=jawaban.filter(x=>x===null).length;
+const kosong=hasilJawaban.filter(x=>x===null).length;
 const salah=soal.length-benar-kosong;
 document.getElementById("rincian").textContent="Benar: "+benar+" | Salah: "+salah+" | Tidak dijawab: "+kosong+" | Jumlah soal: "+soal.length;
 const perKategori={};
-soal.forEach((q,i)=>{if(!perKategori[q.m])perKategori[q.m]={total:0,benar:0};perKategori[q.m].total++;if(jawaban[i]===q.a)perKategori[q.m].benar++;});
+soal.forEach((q,i)=>{if(!perKategori[q.m])perKategori[q.m]={total:0,benar:0};perKategori[q.m].total++;if(hasilJawaban[i]===q.a)perKategori[q.m].benar++;});
 document.getElementById("rincianKategori").innerHTML="<h3>Nilai per kategori</h3>"+Object.entries(perKategori).map(([m,v])=>"<p>"+m+": "+v.benar+" dari "+v.total+" benar</p>").join("");
 let data=JSON.parse(localStorage.getItem("riwayatPintar")||"[]");
 data.unshift({nama:namaPaket,nilai,tanggal:new Date().toLocaleString("id-ID"),benar,total:soal.length});
@@ -647,8 +649,8 @@ function lihatPembahasan(){
 const area=document.getElementById("pembahasan");area.innerHTML="";
 soal.forEach((q,i)=>{
 let d=document.createElement("div");d.className="card";
-let hasil=jawaban[i]===q.a;
-d.innerHTML="<b>Soal "+(i+1)+"</b><p>"+q.q+"</p><p>Jawaban benar: <b>"+String.fromCharCode(65+q.a)+". "+q.o[q.a]+"</b></p><p>Jawaban kamu: "+(jawaban[i]===null?"Tidak dijawab":String.fromCharCode(65+jawaban[i])+". "+q.o[jawaban[i]])+"</p><p><b>"+(hasil?"Benar":"Belum tepat")+"</b></p><p class='small'>Pembahasan: "+q.e+"</p><p class='small'><b>Referensi belajar:</b> "+(q.r||referensiSoal(q))+"</p>";
+let hasil=hasilJawaban[i]===q.a;
+d.innerHTML="<b>Soal "+(i+1)+"</b><p>"+q.q+"</p><p>Jawaban benar: <b>"+String.fromCharCode(65+q.a)+". "+q.o[q.a]+"</b></p><p>Jawaban kamu: "+(hasilJawaban[i]===null?"Tidak dijawab":String.fromCharCode(65+hasilJawaban[i])+". "+q.o[hasilJawaban[i]])+"</p><p><b>"+(hasil?"Benar":"Belum tepat")+"</b></p><p class='small'>Pembahasan: "+q.e+"</p><p class='small'><b>Referensi belajar:</b> "+(q.r||referensiSoal(q))+"</p>";
 area.appendChild(d);
 });
 area.scrollIntoView({behavior:"smooth"});
