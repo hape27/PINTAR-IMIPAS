@@ -169,7 +169,12 @@ const kuota={
 function hitungBank(){
   return ["TWK","TPU","TSI","TPM","TKT","TKP"].map(m=>m+": "+bank.filter(q=>q.m===m).length+" soal").join(" • ");
 }
-document.getElementById("statusBank").textContent="Bank saat ini: "+bank.length+" soal unik. Target pengembangan: 300 soal (50 per kategori).";
+const kategoriBank=["TWK","TPU","TSI","TPM","TKT","TKP"];
+document.getElementById("statusBank").textContent="Progres bank soal: "+kategoriBank.map(m=>m+" "+bank.filter(q=>q.m===m).length+"/50").join(" • ")+" | Total "+bank.length+"/300 soal unik."; 
+document.querySelectorAll("#pilihMateri option").forEach(opt=>{
+const jumlah=bank.filter(q=>q.m===opt.value).length;
+opt.textContent=opt.textContent.replace(/ \\(\\d+ soal\\)$/,"")+" ("+jumlah+" soal tersedia)";
+});
 
 function tampil(id){
 ["home","latihan","ujian","hasil","riwayat"].forEach(x=>document.getElementById(x).classList.add("hidden"));
